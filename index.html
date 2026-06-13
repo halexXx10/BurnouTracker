@@ -1,0 +1,2333 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>BurnoutTracker</title>
+<style>
+:root{
+  --bg:#f5f7fb;
+  --surface:#ffffff;
+  --surface-2:#f8fafc;
+  --line:#d9e3ee;
+  --text:#102033;
+  --muted:#5f6f82;
+  --accent:#1d73a8;
+  --accent-2:#0f5d8c;
+  --accent-soft:#eaf4fb;
+  --ok:#1f8a62;
+  --ok-soft:#e7f6ef;
+  --warn:#b58218;
+  --warn-soft:#fff4d9;
+  --bad:#c84f5d;
+  --bad-soft:#fdecef;
+  --shadow:0 18px 45px rgba(16,32,51,.08);
+  --radius:22px;
+  --radius-sm:16px;
+  --font:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;font-family:var(--font);color:var(--text);background:
+  radial-gradient(circle at top left,rgba(29,115,168,.06),transparent 30%),
+  radial-gradient(circle at top right,rgba(29,115,168,.05),transparent 26%),
+  var(--bg);
+}
+body{overflow-x:hidden}
+button,input,select,textarea{font:inherit}
+button{border:0;cursor:pointer}
+a{color:inherit}
+.hidden{display:none !important}
+.muted{color:var(--muted)}
+.small{font-size:.9rem}
+.xsmall{font-size:.8rem}
+.grid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:18px}
+.card{
+  background:rgba(255,255,255,.96);
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  box-shadow:var(--shadow);
+  padding:20px;
+  min-width:0;
+}
+.s12{grid-column:span 12}
+.s8{grid-column:span 8}
+.s7{grid-column:span 7}
+.s6{grid-column:span 6}
+.s5{grid-column:span 5}
+.s4{grid-column:span 4}
+.s3{grid-column:span 3}
+.row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.between{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.title{font-size:clamp(1.35rem,2.8vw,2.1rem);line-height:1.08;margin:0}
+.hero-title{font-size:clamp(2rem,4.8vw,3.7rem);line-height:.96;margin:18px 0 14px;letter-spacing:-.05em}
+.sub{margin:8px 0 0;color:var(--muted);max-width:820px;line-height:1.6}
+.label{font-weight:700;font-size:.92rem;margin-bottom:7px;display:block}
+.field{display:grid;gap:7px}
+input,select,textarea{
+  width:100%;
+  border:1px solid var(--line);
+  border-radius:16px;
+  padding:12px 14px;
+  background:#fff;
+  color:var(--text);
+  outline:none;
+  transition:.18s ease;
+}
+input:focus,select:focus,textarea:focus{
+  border-color:rgba(29,115,168,.45);
+  box-shadow:0 0 0 4px rgba(29,115,168,.10);
+}
+textarea{min-height:108px;resize:vertical}
+input[type="range"]{
+  appearance:none;
+  height:10px;
+  padding:0;
+  background:linear-gradient(90deg,var(--accent),#7fc0e6);
+  border:0;
+  border-radius:999px;
+}
+input[type="range"]::-webkit-slider-thumb{
+  appearance:none;
+  width:22px;height:22px;border-radius:50%;
+  background:#fff;border:5px solid var(--accent);
+  box-shadow:0 5px 16px rgba(0,0,0,.14);
+}
+input[type="range"]::-moz-range-thumb{
+  width:22px;height:22px;border-radius:50%;
+  background:#fff;border:5px solid var(--accent);
+  box-shadow:0 5px 16px rgba(0,0,0,.14);
+}
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  min-height:44px;padding:11px 16px;border-radius:999px;
+  background:var(--accent);color:#fff;font-weight:800;
+  transition:.18s ease;box-shadow:0 10px 24px rgba(29,115,168,.14);
+}
+.btn:hover{transform:translateY(-1px);background:var(--accent-2)}
+.btn.alt{
+  background:#fff;color:var(--accent-2);border:1px solid var(--line);box-shadow:none;
+}
+.btn.soft{
+  background:var(--accent-soft);color:var(--accent-2);border:1px solid #cfe3f2;box-shadow:none;
+}
+.btn.bad{
+  background:var(--bad-soft);color:var(--bad);border:1px solid #f1c7cd;box-shadow:none;
+}
+.btn.full{width:100%}
+.chip{
+  display:inline-flex;align-items:center;gap:8px;padding:8px 11px;border-radius:999px;
+  border:1px solid transparent;font-weight:700;font-size:.8rem;line-height:1.15;
+}
+.chip::before{content:"";width:8px;height:8px;border-radius:50%;background:currentColor}
+.ok{background:var(--ok-soft);color:var(--ok);border-color:#bfe6d5}
+.warn{background:var(--warn-soft);color:var(--warn);border-color:#f1ddb0}
+.bad{background:var(--bad-soft);color:var(--bad);border-color:#f4c6ce}
+.info{background:var(--accent-soft);color:var(--accent-2);border-color:#cde4f2}
+.logo{display:flex;align-items:center;gap:12px}
+.mark{
+  width:48px;height:48px;border-radius:16px;background:linear-gradient(145deg,#fff,#eaf4fb);
+  border:1px solid #cfe3f2;display:grid;place-items:center;box-shadow:0 10px 24px rgba(29,115,168,.08);
+}
+.mark svg{width:34px;height:34px}
+.brand{display:block;font-size:1rem;font-weight:900;letter-spacing:-.03em}
+.caption{display:block;color:var(--muted);font-size:.78rem;margin-top:2px}
+.layout-auth,.layout-assessment{min-height:100vh;display:grid;place-items:center;padding:28px}
+.auth-grid{
+  width:min(1160px,100%);
+  display:grid;
+  grid-template-columns:1.06fr .94fr;
+  gap:22px;
+}
+.hero{
+  background:linear-gradient(180deg,#fff,#f8fbfe);
+  border:1px solid var(--line);
+  border-radius:30px;
+  box-shadow:var(--shadow);
+  padding:34px;
+  display:flex;flex-direction:column;justify-content:space-between;
+  min-height:640px;
+}
+.hero-panel{
+  display:grid;gap:14px;
+  padding:20px;border-radius:24px;background:#fff;border:1px solid var(--line);
+}
+.hero-metrics{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:18px;
+}
+.hero-metrics > div{
+  padding:14px 15px;border:1px solid var(--line);border-radius:18px;background:var(--surface-2);
+}
+.hero-metrics b{font-size:1.3rem}
+.hero-card{
+  background:rgba(255,255,255,.96);
+  border:1px solid var(--line);
+  border-radius:30px;
+  box-shadow:var(--shadow);
+  padding:28px;
+}
+.tabs{
+  display:grid;grid-template-columns:1fr 1fr;gap:8px;
+  padding:6px;background:#edf2f7;border-radius:999px;margin-bottom:18px;
+}
+.tab{
+  padding:11px 14px;border-radius:999px;background:transparent;color:var(--muted);font-weight:800;
+}
+.tab.on{background:#fff;color:var(--accent-2);box-shadow:0 8px 18px rgba(16,32,51,.08)}
+.form{display:grid;gap:14px}
+.tw{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.err{min-height:18px;color:var(--bad);font-size:.88rem}
+.stepbox{
+  width:min(1080px,100%);
+  background:rgba(255,255,255,.96);
+  border:1px solid var(--line);
+  border-radius:30px;
+  box-shadow:var(--shadow);
+  padding:28px;
+}
+.progress{
+  height:11px;border-radius:999px;background:#edf2f7;border:1px solid #e2e8f0;overflow:hidden;
+}
+.progress i{
+  display:block;height:100%;background:linear-gradient(90deg,var(--accent),#4fa0d1);border-radius:999px;width:20%;
+}
+.qgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin-top:18px}
+.q{background:#fff;border:1px solid var(--line);border-radius:22px;padding:18px;min-width:0}
+.q.full{grid-column:1/-1}
+.q h3{margin:0 0 12px;font-size:1rem;letter-spacing:-.02em}
+.kicker{display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border-radius:999px;background:#fff;border:1px solid var(--line);font-weight:800;color:var(--accent-2)}
+.select-row,.chips,.option-grid{display:flex;gap:10px;flex-wrap:wrap}
+.option-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.option,.chip-btn{
+  width:100%;
+  text-align:left;
+  padding:12px 14px;
+  background:#fff;
+  border:1px solid var(--line);
+  border-radius:18px;
+  color:var(--text);
+  font-weight:700;
+  transition:.15s ease;
+}
+.option small{display:block;color:var(--muted);font-weight:500;margin-top:4px}
+.option.on,.chip-btn.on{
+  background:var(--accent);
+  color:#fff;
+  border-color:var(--accent);
+  box-shadow:0 12px 25px rgba(29,115,168,.16);
+}
+.option.on small,.chip-btn.on small{color:rgba(255,255,255,.84)}
+
+.scale-grid{
+  display:grid;
+  grid-template-columns:repeat(5,minmax(46px,1fr));
+  gap:8px;
+  width:100%;
+}
+.scale-option{
+  min-height:68px;
+  padding:10px 6px;
+  border:1px solid var(--line);
+  border-radius:16px;
+  background:#fff;
+  color:var(--text);
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:4px;
+  text-align:center;
+  font-weight:900;
+  transition:.15s ease;
+}
+.scale-option b{font-size:1.15rem;line-height:1}
+.scale-option small{font-size:.68rem;color:var(--muted);font-weight:700;line-height:1.15}
+.scale-option.on,
+.scale-option:hover{
+  background:var(--accent);
+  color:#fff;
+  border-color:var(--accent);
+  box-shadow:0 10px 24px rgba(29,115,168,.16);
+}
+.scale-option.on small,.scale-option:hover small{color:rgba(255,255,255,.86)}
+.choice-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.choice-grid .chip-btn{height:100%}
+.responsive-note{margin-top:10px;color:var(--muted);font-size:.82rem;line-height:1.45}
+
+.range-box{
+  display:grid;
+  grid-template-columns:1fr 74px;
+  gap:12px;
+  align-items:center;
+}
+.value-pill{
+  text-align:center;
+  padding:10px 11px;
+  border-radius:14px;
+  border:1px solid #dbe7f1;
+  background:var(--accent-soft);
+  font-weight:900;
+  color:var(--accent-2);
+}
+.sleep-value{
+  font-size:1.55rem;font-weight:900;letter-spacing:-.05em;line-height:1;
+}
+.sleep-note{color:var(--muted);font-size:.9rem;margin-top:3px}
+.app{
+  min-height:100vh;
+  display:grid;
+  grid-template-columns:280px minmax(0,1fr);
+}
+.side{
+  position:sticky;top:0;height:100vh;
+  padding:20px;background:rgba(255,255,255,.92);
+  border-right:1px solid var(--line);
+  display:flex;flex-direction:column;gap:16px;
+}
+.nav{display:grid;gap:8px;overflow:auto;padding-right:4px}
+.nav button{
+  display:flex;align-items:center;gap:10px;padding:12px 13px;border-radius:16px;
+  background:transparent;color:var(--muted);font-weight:700;text-align:left;
+}
+.nav button.on,.nav button:hover{background:linear-gradient(135deg,var(--accent),#4ea2d1);color:#fff}
+.nav-ico{
+  width:26px;height:26px;border-radius:10px;display:grid;place-items:center;
+  background:rgba(29,115,168,.08);color:inherit;flex:0 0 auto;
+}
+.userbox{
+  margin-top:auto;
+  padding:14px;border-radius:20px;
+  border:1px solid var(--line);background:linear-gradient(180deg,#fff,var(--surface-2));
+  display:grid;grid-template-columns:auto minmax(0,1fr);gap:12px;align-items:center;
+}
+.avatar{
+  width:46px;height:46px;border-radius:15px;background:linear-gradient(145deg,var(--accent-2),var(--accent));
+  color:#fff;display:grid;place-items:center;font-weight:900;text-transform:uppercase;
+}
+.userbox b,.userbox span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.main{min-width:0;padding:24px 28px 42px}
+.top{
+  position:sticky;top:0;z-index:5;
+  margin:-24px -28px 22px;padding:16px 28px;
+  background:rgba(245,247,251,.9);backdrop-filter:blur(14px);
+  border-bottom:1px solid rgba(217,227,238,.85);
+}
+.hamb{display:none}
+.metric{
+  display:flex;flex-direction:column;justify-content:space-between;gap:12px;min-height:166px;
+}
+.metric .num{
+  font-size:clamp(1.9rem,3vw,3rem);font-weight:900;letter-spacing:-.06em;line-height:.95;
+}
+.metric .prog{height:10px;background:#edf2f7;border-radius:999px;overflow:hidden}
+.metric .prog i{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,var(--accent),#6ab0da)}
+.metric .prog.ok i{background:linear-gradient(90deg,var(--ok),#84d2b0)}
+.metric .prog.warn i{background:linear-gradient(90deg,var(--warn),#efd07c)}
+.metric .prog.bad i{background:linear-gradient(90deg,var(--bad),#f09ca7)}
+.hero-card{background:linear-gradient(180deg,#fff,#f9fbfd)}
+.chart{
+  border:1px solid var(--line);
+  background:#fff;
+  border-radius:20px;
+  overflow:hidden;
+  padding:10px;
+}
+.chart svg{width:100%;height:auto;display:block}
+.ins{
+  display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:12px;align-items:start;
+  border:1px solid var(--line);background:#fff;border-radius:18px;padding:14px;
+}
+.ins h4{margin:0 0 4px}
+.ins p{margin:0;color:var(--muted);font-size:.92rem;line-height:1.5}
+.badge{
+  width:36px;height:36px;border-radius:12px;background:var(--accent-soft);color:var(--accent-2);
+  display:grid;place-items:center;font-weight:900;flex:0 0 auto;
+}
+.stats{
+  display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px
+}
+.stat{
+  background:#f8fbfe;border:1px solid #edf2f7;border-radius:18px;padding:14px
+}
+.stat span{display:block;color:var(--muted);font-size:.8rem}
+.line{display:grid;gap:12px}
+.item{
+  display:grid;grid-template-columns:auto minmax(0,1fr);gap:13px;
+  padding:15px;border:1px solid var(--line);border-radius:18px;background:#fff;
+}
+.item .mark2{
+  width:38px;height:38px;border-radius:14px;background:var(--accent-soft);color:var(--accent-2);
+  display:grid;place-items:center;font-weight:900;
+}
+.cal{
+  display:grid;grid-template-columns:repeat(7,1fr);gap:8px
+}
+.day{
+  min-height:55px;border-radius:15px;border:1px solid var(--line);background:#fff;
+  display:grid;place-items:center;font-size:.82rem
+}
+.toast{
+  position:fixed;right:18px;bottom:18px;z-index:99;
+  display:grid;gap:10px;max-width:min(420px,calc(100vw - 32px))
+}
+.toast div{
+  background:#fff;border:1px solid #cfe0ef;border-radius:16px;padding:14px 16px;box-shadow:var(--shadow)
+}
+.showcase{
+  overflow:hidden;border-radius:30px;background:#fff;border:1px solid var(--line);box-shadow:var(--shadow)
+}
+.showcase-head{
+  padding:36px 28px 24px;border-bottom:1px solid var(--line);
+  background:linear-gradient(180deg,#fff,#f8fbfe);
+}
+.showcase-head h2{margin:0;font-size:clamp(2rem,4vw,3.1rem);letter-spacing:-.06em}
+.showcase-head p{max-width:820px;color:var(--muted);line-height:1.6}
+.feature-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;padding:24px 28px 28px}
+.feature{
+  background:#fff;border:1px solid var(--line);border-radius:22px;padding:22px;
+  min-height:200px;display:flex;flex-direction:column;gap:12px;
+}
+.feature h3{margin:0;font-size:1.08rem}
+.feature p{margin:0;color:var(--muted);line-height:1.55}
+.feature .ico{
+  width:48px;height:48px;border-radius:18px;background:var(--accent-soft);color:var(--accent-2);
+  display:grid;place-items:center;font-weight:900;
+}
+.feature a{margin-top:auto;color:var(--accent-2);font-weight:800}
+.benefits{
+  padding:0 28px 30px;
+  display:grid;grid-template-columns:1.05fr .95fr;gap:18px;
+}
+.benefit-panel{
+  border-radius:24px;padding:26px;background:linear-gradient(135deg,var(--text),#18314d);color:#fff;
+}
+.benefit-panel p{color:rgba(255,255,255,.84);line-height:1.55}
+.benefit-list{display:grid;gap:12px}
+.footer-panel{
+  margin:0 28px 28px;text-align:center;padding:24px;border-radius:24px;background:linear-gradient(180deg,#fff,#f8fbfe);
+  border:1px solid var(--line);
+}
+@media(max-width:1100px){
+  .auth-grid,.benefits{grid-template-columns:1fr}
+  .s8,.s7,.s6,.s5,.s4,.s3{grid-column:span 12}
+  .stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .feature-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .qgrid{grid-template-columns:1fr}
+  .hero-metrics{grid-template-columns:1fr}
+}
+@media(max-width:820px){
+  .app{grid-template-columns:1fr}
+  .side{
+    position:fixed;inset:0 auto 0 0;width:min(320px,88vw);
+    transform:translateX(-105%);transition:.23s ease;box-shadow:var(--shadow);z-index:20;
+  }
+  .side.open{transform:none}
+  .hamb{display:inline-flex}
+  .main{padding:18px}
+  .top{margin:-18px -18px 18px;padding:14px 18px}
+  .tw,.stats{grid-template-columns:1fr}
+  .feature-grid{grid-template-columns:1fr}
+  .cal{grid-template-columns:repeat(4,1fr)}
+  .option-grid{grid-template-columns:1fr}
+}
+@media(max-width:540px){
+  .layout-auth,.layout-assessment{padding:14px}
+  .hero,.hero-card,.stepbox,.card{padding:18px}
+  .tabs{grid-template-columns:1fr;border-radius:18px}
+  .tab{border-radius:14px}
+  .btn{width:100%}
+  .top .btn{width:auto}
+  .range-box{grid-template-columns:1fr}
+}
+
+@media(max-width:980px){
+  .auth-grid{grid-template-columns:1fr}
+  .hero{min-height:auto}
+  .main{padding-bottom:86px}
+}
+@media(max-width:640px){
+  .grid{gap:12px}
+  .card{border-radius:18px;padding:16px}
+  .hero-title{letter-spacing:-.035em}
+  .q{padding:15px;border-radius:18px}
+  .scale-grid{grid-template-columns:repeat(5,minmax(38px,1fr));gap:6px}
+  .scale-option{min-height:58px;padding:8px 4px;border-radius:14px}
+  .scale-option b{font-size:1rem}
+  .scale-option small{font-size:.58rem}
+  .choice-grid{grid-template-columns:1fr}
+  .between{align-items:flex-start}
+  .stats{gap:10px}
+  .ins{grid-template-columns:auto minmax(0,1fr);}
+  .ins .chip{grid-column:1/-1;width:max-content;max-width:100%}
+}
+@media(max-width:390px){
+  .layout-auth,.layout-assessment{padding:10px}
+  .hero,.hero-card,.stepbox,.card{padding:14px}
+  .scale-grid{grid-template-columns:repeat(5,1fr);gap:4px}
+  .scale-option{min-height:52px;padding:7px 2px}
+  .scale-option small{display:none}
+  .q h3{font-size:.95rem}
+  .main{padding:12px}
+  .top{margin:-12px -12px 14px;padding:12px}
+}
+
+</style>
+
+<script defer src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/jspdf@3.0.1/dist/jspdf.umd.min.js"></script>
+
+<style id="dark-mode-extension">
+body.dark{
+  --bg:#0f172a;
+  --surface:#111827;
+  --surface-2:#1e293b;
+  --line:#334155;
+  --text:#e5e7eb;
+  --muted:#9ca3af;
+  background:#0f172a !important;
+  color:#e5e7eb !important;
+}
+body.dark .card,
+body.dark .hero,
+body.dark .hero-card,
+body.dark .hero-panel,
+body.dark .stepbox,
+body.dark .side,
+body.dark .top,
+body.dark .q,
+body.dark .stat,
+body.dark .item,
+body.dark .ins,
+body.dark .chart,
+body.dark .day,
+body.dark .showcase,
+body.dark .footer-panel{
+  background:#1e293b !important;
+  color:#e5e7eb !important;
+  border-color:#334155 !important;
+}
+body.dark input,
+body.dark select,
+body.dark textarea,
+body.dark .option,
+body.dark .chip-btn{
+  background:#0f172a !important;
+  color:#e5e7eb !important;
+  border-color:#334155 !important;
+}
+body.dark .muted,
+body.dark .caption,
+body.dark .small.muted{
+  color:#9ca3af !important;
+}
+body.dark .top{
+  background:rgba(15,23,42,.9) !important;
+}
+</style>
+
+</head>
+<body>
+<div id="toast" class="toast"></div>
+
+<section id="auth" class="layout-auth">
+  <div class="auth-grid">
+    <div class="hero">
+      <div>
+        <div class="logo">
+          <div class="mark">
+            <svg viewBox="0 0 64 64" aria-hidden="true">
+              <rect x="8" y="8" width="48" height="48" rx="18" fill="#1d73a8"></rect>
+              <path d="M17 34c5 0 5-11 10-11 6 0 5 22 11 22 5 0 5-14 10-14" fill="none" stroke="#fff" stroke-width="4.5" stroke-linecap="round"></path>
+            </svg>
+          </div>
+          <div>
+            <span class="brand">BurnoutTracker</span>
+            <span class="caption">Seguimiento académico del bienestar</span>
+          </div>
+        </div>
+
+        <h1 class="hero-title">Monitorea tu bienestar académico con una interfaz sobria, clara y profesional.</h1>
+        <p class="sub">La aplicación registra tu estado, interpreta señales de agotamiento y muestra reportes comprensibles para acompañar tu semestre con un enfoque preventivo y académico.</p>
+
+        <div class="hero-metrics">
+          <div><b>5</b><div class="muted small">bloques de evaluación</div></div>
+          <div><b>3</b><div class="muted small">niveles de riesgo</div></div>
+          <div><b>10+</b><div class="muted small">indicadores clave</div></div>
+        </div>
+      </div>
+
+      <div class="hero-panel">
+        <span class="chip info">Registro preventivo · lenguaje académico · lectura visual limpia</span>
+        <div class="small muted">Diseñado para que el seguimiento diario sea sencillo, serio y fácil de presentar en un contexto universitario.</div>
+      </div>
+    </div>
+
+    <div class="hero-card">
+      <div class="tabs">
+        <button id="tabLogin" class="tab on" type="button" onclick="setAuthTab('login')">Iniciar sesión</button>
+        <button id="tabReg" class="tab" type="button" onclick="setAuthTab('register')">Crear cuenta</button>
+      </div>
+
+      <form id="loginForm" class="form">
+        <div>
+          <h2 class="title">Bienvenido</h2>
+          <p class="sub">Accede con tu usuario o correo y continúa con tu seguimiento.</p>
+        </div>
+        <div class="field">
+          <label class="label" for="loginId">Usuario o correo</label>
+          <input id="loginId" autocomplete="username" />
+        </div>
+        <div class="field">
+          <label class="label" for="loginPass">Contraseña</label>
+          <input id="loginPass" type="password" autocomplete="current-password" />
+        </div>
+        <div id="loginError" class="err"></div>
+        <button class="btn full" type="submit">Entrar</button>
+      </form>
+
+      <form id="registerForm" class="form hidden">
+        <div>
+          <h2 class="title">Crear perfil</h2>
+          <p class="sub">Tus datos se usan para personalizar reportes, alertas y seguimiento.</p>
+        </div>
+        <div class="tw">
+          <div class="field">
+            <label class="label" for="regUser">Nombre de usuario</label>
+            <input id="regUser" autocomplete="username" />
+          </div>
+          <div class="field">
+            <label class="label" for="regName">Nombre completo</label>
+            <input id="regName" autocomplete="name" />
+          </div>
+        </div>
+        <div class="field">
+          <label class="label" for="regEmail">Correo electrónico</label>
+          <input id="regEmail" type="email" autocomplete="email" />
+        </div>
+        <div class="tw">
+          <div class="field">
+            <label class="label" for="regProgram">Programa académico</label>
+            <input id="regProgram" />
+          </div>
+          <div class="field">
+            <label class="label" for="regSemester">Semestre</label>
+            <select id="regSemester">
+              <option value="">Selecciona</option>
+              <option>1 semestre</option><option>2 semestre</option><option>3 semestre</option><option>4 semestre</option><option>5 semestre</option>
+              <option>6 semestre</option><option>7 semestre</option><option>8 semestre</option><option>9 semestre</option><option>10 semestre</option>
+            </select>
+          </div>
+        </div>
+        <div class="tw">
+          <div class="field">
+            <label class="label" for="regPass">Contraseña</label>
+            <input id="regPass" type="password" />
+          </div>
+          <div class="field">
+            <label class="label" for="regPass2">Confirmación</label>
+            <input id="regPass2" type="password" />
+          </div>
+        </div>
+        <div id="regError" class="err"></div>
+        <button class="btn full" type="submit">Crear cuenta y continuar</button>
+      </form>
+    </div>
+  </div>
+</section>
+
+<section id="assessment" class="layout-assessment hidden">
+  <div class="stepbox">
+    <div class="between">
+      <div>
+        <div class="logo">
+          <div class="mark">
+            <svg viewBox="0 0 64 64" aria-hidden="true">
+              <rect x="8" y="8" width="48" height="48" rx="18" fill="#1d73a8"></rect>
+              <path d="M17 34c5 0 5-11 10-11 6 0 5 22 11 22 5 0 5-14 10-14" fill="none" stroke="#fff" stroke-width="4.5" stroke-linecap="round"></path>
+            </svg>
+          </div>
+          <div>
+            <span class="brand">BurnoutTracker</span>
+            <span class="caption">Evaluación inicial</span>
+          </div>
+        </div>
+        <h1 class="title" style="margin-top:20px">Evaluación inicial de bienestar académico</h1>
+        <p class="sub">Responde con sinceridad para construir tu primer perfil de seguimiento personalizado.</p>
+        <div class="progress"><i id="stepBar"></i></div>
+      </div>
+      <span id="stepLabel" class="kicker">Paso 1 de 5</span>
+    </div>
+
+    <div id="stepContent"></div>
+
+    <div class="between" style="margin-top:18px">
+      <button id="backStep" class="btn alt" type="button" onclick="previousStep()">Volver</button>
+      <button id="nextStep" class="btn" type="button" onclick="nextStep()">Siguiente</button>
+    </div>
+  </div>
+</section>
+
+<section id="app" class="hidden">
+  <div class="app">
+    <aside id="side" class="side">
+      <div class="logo">
+        <div class="mark">
+          <svg viewBox="0 0 64 64" aria-hidden="true">
+            <rect x="8" y="8" width="48" height="48" rx="18" fill="#1d73a8"></rect>
+            <path d="M17 34c5 0 5-11 10-11 6 0 5 22 11 22 5 0 5-14 10-14" fill="none" stroke="#fff" stroke-width="4.5" stroke-linecap="round"></path>
+          </svg>
+        </div>
+        <div>
+          <span class="brand">BurnoutTracker</span>
+          <span class="caption">Seguimiento activo</span>
+        </div>
+      </div>
+
+      <nav id="nav" class="nav"></nav>
+
+      <div class="userbox">
+        <div id="avatar" class="avatar">B</div>
+        <div>
+          <b id="userName"></b>
+          <span id="userMeta" class="small muted"></span>
+        </div>
+      </div>
+
+      <button class="btn alt full" type="button" onclick="logout()">Cerrar sesión</button><button class='btn soft full' onclick='toggleDarkMode()'>🌙 Modo oscuro</button>
+      <div class="small muted" style="text-align:center">Desarrollado por Haider y Holger</div>
+    </aside>
+
+    <main class="main">
+      <header class="top between">
+        <div>
+          <h1 id="mainTitle" style="margin:0;font-size:1.18rem">Panel general</h1>
+          <div id="mainSub" class="small muted">Resumen actualizado</div>
+        </div>
+        <button class="btn alt hamb" type="button" onclick="document.getElementById('side').classList.toggle('open')">Menú</button>
+      </header>
+
+      <div id="view"></div>
+    </main>
+  </div>
+</section>
+
+<script>
+const STORAGE_USERS = "bt_users_v4";
+const STORAGE_CURRENT = "bt_current_v4";
+
+const NAV_ITEMS = [
+  ["panel", "Panel general", "⌁"],
+  ["presentacion", "Presentación", "◆"],
+  ["perfil", "Mi perfil", "◉"],
+  ["bienestar", "Mi bienestar", "◌"],
+  ["encuesta", "Encuesta diaria", "＋"],
+  ["indicadores", "Indicadores", "▥"],
+  ["alertas", "Alertas", "△"],
+  ["consejos", "Consejos", "✧"],
+  ["reportes", "Reportes", "▤"],
+  ["seguimiento", "Seguimiento", "◍"],
+  ["acerca", "Acerca de", "i"]
+];
+
+const INITIAL_STEPS = [
+  {
+    title: "Estado emocional actual",
+    desc: "Identifica cómo se encuentra tu energía emocional durante estos días.",
+    questions: [
+      { type: "scale", key: "stress", label: "¿Cómo calificas tu nivel de estrés actual?", min: 1, max: 5, step: 1, value: 3 },
+      { type: "scale", key: "exhaustion", label: "¿Qué tan agotado emocionalmente te sientes?", min: 1, max: 5, step: 1, value: 2 },
+      { type: "scale", key: "motivation", label: "¿Qué tan motivado te sientes con tus actividades académicas?", min: 1, max: 5, step: 1, value: 3 },
+      { type: "scale", key: "calm", label: "¿Qué tan tranquilo o estable te has sentido esta semana?", min: 1, max: 5, step: 1, value: 3 },
+      { type: "select", key: "pressure", label: "¿Con qué frecuencia has sentido presión o saturación?", value: "Algunos momentos", options: [
+        ["Nunca", "Nunca"],
+        ["Algunos momentos", "Algunos momentos"],
+        ["Frecuentemente", "Frecuentemente"],
+        ["Casi todos los días", "Casi todos los días"]
+      ] }
+    ]
+  },
+  {
+    title: "Sueño y descanso",
+    desc: "El descanso influye en concentración, recuperación y rendimiento.",
+    questions: [
+      { type: "scale", key: "sleepHours", label: "¿Cuántas horas dormiste anoche?", min: 1, max: 5, step: 1, value: 3 },
+      { type: "scale", key: "sleepQuality", label: "¿Cómo calificas la calidad de tu sueño?", min: 1, max: 5, step: 1, value: 3 },
+      { type: "select", key: "wokeTired", label: "¿Te has despertado cansado durante los últimos días?", value: "Algunas veces", options: [
+        ["Nunca", "Nunca"],
+        ["Algunas veces", "Algunas veces"],
+        ["Frecuentemente", "Frecuentemente"],
+        ["Casi siempre", "Casi siempre"]
+      ] },
+      { type: "scale", key: "restTime", label: "¿Has tenido tiempo suficiente para descansar?", min: 1, max: 5, step: 1, value: 3 },
+      { type: "select", key: "restSufficient", label: "¿Sientes que tu descanso es suficiente para rendir académicamente?", value: "Parcialmente", options: [
+        ["No", "No"],
+        ["Parcialmente", "Parcialmente"],
+        ["Sí", "Sí"]
+      ] }
+    ]
+  },
+  {
+    title: "Carga académica",
+    desc: "Registra el nivel de exigencia y organización de tus responsabilidades.",
+    questions: [
+      { type: "select", key: "workload", label: "¿Cómo percibes tu carga académica actual?", value: "Media", options: [
+        ["Baja", "Baja"],
+        ["Media", "Media"],
+        ["Alta", "Alta"],
+        ["Muy alta", "Muy alta"]
+      ] },
+      { type: "select", key: "deliveries", label: "¿Cuántas entregas importantes tienes esta semana?", value: "2 a 3", options: [
+        ["0 a 1", "0 a 1"],
+        ["2 a 3", "2 a 3"],
+        ["4 a 5", "4 a 5"],
+        ["Más de 5", "Más de 5"]
+      ] },
+      { type: "select", key: "accumulated", label: "¿Tienes parciales, proyectos o exposiciones acumuladas?", value: "Una actividad", options: [
+        ["No", "No"],
+        ["Una actividad", "Una actividad"],
+        ["Varias actividades", "Varias actividades"],
+        ["Semana muy cargada", "Semana muy cargada"]
+      ] },
+      { type: "scale", key: "timeEnough", label: "¿Sientes que el tiempo disponible es suficiente para cumplir tus tareas?", min: 1, max: 5, step: 1, value: 3 },
+      { type: "scale", key: "organizationDifficulty", label: "¿Qué tan difícil te resulta organizar tus responsabilidades académicas?", min: 1, max: 5, step: 1, value: 2 }
+    ]
+  },
+  {
+    title: "Rendimiento y concentración",
+    desc: "Observa atención, participación y avance académico.",
+    questions: [
+      { type: "scale", key: "concentration", label: "¿Qué tan concentrado has estado en clase o al estudiar?", min: 1, max: 5, step: 1, value: 3 },
+      { type: "scale", key: "performance", label: "¿Cómo percibes tu rendimiento académico actual?", min: 1, max: 5, step: 1, value: 3 },
+      { type: "select", key: "taskDifficulty", label: "¿Has tenido dificultad para iniciar o terminar tareas?", value: "A veces", options: [
+        ["Nunca", "Nunca"],
+        ["A veces", "A veces"],
+        ["Frecuentemente", "Frecuentemente"],
+        ["Casi siempre", "Casi siempre"]
+      ] },
+      { type: "select", key: "disinterest", label: "¿Has sentido desinterés por actividades académicas?", value: "Poco", options: [
+        ["Nada", "Nada"],
+        ["Poco", "Poco"],
+        ["Moderado", "Moderado"],
+        ["Alto", "Alto"]
+      ] },
+      { type: "select", key: "participation", label: "¿Has disminuido tu participación en actividades?", value: "Poco", options: [
+        ["Nada", "Nada"],
+        ["Poco", "Poco"],
+        ["Moderado", "Moderado"],
+        ["Alto", "Alto"]
+      ] }
+    ]
+  },
+  {
+    title: "Bienestar personal y apoyo",
+    desc: "El acompañamiento y el balance personal fortalecen el seguimiento.",
+    questions: [
+      { type: "scale", key: "support", label: "¿Sientes que tienes apoyo de compañeros o familiares?", min: 1, max: 5, step: 1, value: 3 },
+      { type: "scale", key: "balance", label: "¿Has podido equilibrar tu vida personal con tus responsabilidades académicas?", min: 1, max: 5, step: 1, value: 3 },
+      { type: "select", key: "needHelp", label: "¿Has sentido necesidad de pedir ayuda o acompañamiento?", value: "A veces", options: [
+        ["Nunca", "Nunca"],
+        ["A veces", "A veces"],
+        ["Frecuentemente", "Frecuentemente"],
+        ["Casi siempre", "Casi siempre"]
+      ] },
+      { type: "select", key: "accompanied", label: "¿Qué tan acompañado te sientes en tu proceso académico?", value: "Medianamente", options: [
+        ["Nada", "Nada"],
+        ["Poco", "Poco"],
+        ["Medianamente", "Medianamente"],
+        ["Bastante", "Bastante"]
+      ] },
+      { type: "select", key: "improve", label: "¿Qué aspecto te gustaría mejorar esta semana?", value: "Organización", options: [
+        ["Sueño", "Sueño"],
+        ["Organización", "Organización"],
+        ["Motivación", "Motivación"],
+        ["Estrés", "Estrés"],
+        ["Concentración", "Concentración"],
+        ["Descanso", "Descanso"]
+      ] }
+    ]
+  }
+];
+
+const DAILY_QUESTIONS = [
+  { type: "chips", key: "mood", label: "Estado emocional del día", value: "Equilibrado", options: ["Tranquilo", "Equilibrado", "Presionado", "Cansado", "Motivado", "Saturado"] },
+  { type: "scale", key: "stress", label: "Nivel de estrés", min: 1, max: 5, step: 1, value: 2 },
+  { type: "scale", key: "exhaustion", label: "Agotamiento emocional", min: 1, max: 5, step: 1, value: 2 },
+  { type: "select", key: "workload", label: "Carga académica percibida", value: "Media", options: [["Baja","Baja"],["Media","Media"],["Alta","Alta"],["Muy alta","Muy alta"]] },
+  { type: "scale", key: "sleepHours", label: "Horas dormidas", min: 1, max: 5, step: 1, value: 3 },
+  { type: "scale", key: "sleepQuality", label: "Calidad del sueño", min: 1, max: 5, step: 1, value: 3 },
+  { type: "scale", key: "motivation", label: "Motivación académica", min: 1, max: 5, step: 1, value: 3 },
+  { type: "scale", key: "concentration", label: "Concentración", min: 1, max: 5, step: 1, value: 3 },
+  { type: "scale", key: "performance", label: "Rendimiento percibido", min: 1, max: 5, step: 1, value: 3 },
+  { type: "scale", key: "support", label: "Apoyo recibido", min: 1, max: 5, step: 1, value: 3 },
+  { type: "scale", key: "restTime", label: "Tiempo de descanso", min: 1, max: 5, step: 1, value: 2 },
+  { type: "scale", key: "extremeFatigue", label: "Cansancio extremo", min: 1, max: 5, step: 1, value: 2 },
+  { type: "chips", key: "observation", label: "Observación del día", value: "Sin observación", options: ["Sin observación", "Me sentí estable", "Tuve mucha carga", "Dormí poco", "Necesito organizarme", "Necesito apoyo"] }
+];
+
+const state = {
+  user: null,
+  userKey: null,
+  activeView: "panel",
+  step: 0,
+  reportMode: "diario",
+  advice: null,
+  assessment: {},
+  daily: {},
+};
+
+function $(id){ return document.getElementById(id); }
+function escapeHtml(value){
+  return String(value ?? "").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#39;");
+}
+function jsAttr(value){
+  return escapeHtml(String(value ?? "")
+    .replaceAll("\\", "\\\\")
+    .replaceAll("'", "\\'")
+    .replaceAll("\n", " ")
+    .replaceAll("\r", " "));
+}
+function cleanText(value){ return String(value ?? "").trim().replace(/\s+/g, " "); }
+function clamp(value, min = 0, max = 100){
+  const n = Number(value);
+  if(Number.isNaN(n)) return min;
+  return Math.max(min, Math.min(max, n));
+}
+function round(value){ return Math.round(Number(value) || 0); }
+function average(list){
+  const nums = list.map(Number).filter(n => !Number.isNaN(n));
+  if(!nums.length) return 0;
+  return nums.reduce((a,b)=>a+b,0) / nums.length;
+}
+function nowIso(){ return new Date().toISOString(); }
+function fmtDate(date){
+  if(!date) return "Sin fecha";
+  return new Date(date).toLocaleString("es-CO", {
+    day:"2-digit", month:"short", year:"numeric", hour:"2-digit", minute:"2-digit"
+  });
+}
+function todayKey(){ return new Date().toISOString().slice(0,10); }
+function toast(message){
+  const box = document.createElement("div");
+  box.textContent = message;
+  $("toast").appendChild(box);
+  setTimeout(() => box.remove(), 3200);
+}
+function loadUsers(){
+  try { return JSON.parse(localStorage.getItem(STORAGE_USERS)) || {}; }
+  catch { return {}; }
+}
+function saveUsers(users){ localStorage.setItem(STORAGE_USERS, JSON.stringify(users)); }
+function saveCurrentKey(key){ localStorage.setItem(STORAGE_CURRENT, key); }
+function clearCurrentKey(){ localStorage.removeItem(STORAGE_CURRENT); }
+function persistUser(){
+  if(!state.user || !state.userKey) return;
+  const users = loadUsers();
+  users[state.userKey] = state.user;
+  saveUsers(users);
+}
+
+function seedAssessment(){
+  const result = {};
+  INITIAL_STEPS.forEach(step => step.questions.forEach(q => {
+    result[q.key] = (q.type === "range" || q.type === "scale") ? toScale5(q.value, q.key) : q.value;
+  }));
+  return result;
+}
+function seedDaily(){
+  const result = {};
+  DAILY_QUESTIONS.forEach(q => {
+    result[q.key] = (q.type === "range" || q.type === "scale") ? toScale5(q.value, q.key) : q.value;
+  });
+  return result;
+}
+state.assessment = seedAssessment();
+state.daily = seedDaily();
+
+function initial(){
+  return (state.user?.fullName || state.user?.username || "B").slice(0,1).toUpperCase();
+}
+
+function setAuthTab(tab){
+  $("tabLogin").classList.toggle("on", tab === "login");
+  $("tabReg").classList.toggle("on", tab === "register");
+  $("loginForm").classList.toggle("hidden", tab !== "login");
+  $("registerForm").classList.toggle("hidden", tab !== "register");
+}
+function show(section){
+  $("auth").classList.toggle("hidden", section !== "auth");
+  $("assessment").classList.toggle("hidden", section !== "assessment");
+  $("app").classList.toggle("hidden", section !== "app");
+  if(section === "assessment") renderAssessment();
+  if(section === "app") renderApp();
+}
+function authInit(){
+  $("loginForm").addEventListener("submit", login);
+  $("registerForm").addEventListener("submit", register);
+
+  const users = loadUsers();
+  const current = localStorage.getItem(STORAGE_CURRENT);
+  if(current && users[current]){
+    state.userKey = current;
+    state.user = users[current];
+    if(state.user.initialAssessmentData){
+      state.assessment = {...seedAssessment(), ...state.user.initialAssessmentData};
+    }
+    show(state.user.done ? "app" : "assessment");
+  }else{
+    show("auth");
+  }
+}
+function register(event){
+  event.preventDefault();
+  $("regError").textContent = "";
+
+  const username = cleanText($("regUser").value);
+  const fullName = cleanText($("regName").value);
+  const email = cleanText($("regEmail").value);
+  const program = cleanText($("regProgram").value);
+  const semester = $("regSemester").value;
+  const pass1 = $("regPass").value;
+  const pass2 = $("regPass2").value;
+
+  if(!username || !fullName || !email || !program || !semester || !pass1 || !pass2){
+    $("regError").textContent = "Completa todos los campos.";
+    return;
+  }
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){
+    $("regError").textContent = "Ingresa un correo válido.";
+    return;
+  }
+  if(pass1.length < 6){
+    $("regError").textContent = "La contraseña debe tener mínimo 6 caracteres.";
+    return;
+  }
+  if(pass1 !== pass2){
+    $("regError").textContent = "Las contraseñas no coinciden.";
+    return;
+  }
+
+  const users = loadUsers();
+  const key = username.toLowerCase();
+  if(users[key]){
+    $("regError").textContent = "Ese usuario ya existe.";
+    return;
+  }
+  if(Object.values(users).some(u => String(u.email || "").toLowerCase() === email.toLowerCase())){
+    $("regError").textContent = "Ese correo ya está registrado.";
+    return;
+  }
+
+  state.userKey = key;
+  state.user = {
+    username,
+    fullName,
+    email,
+    program,
+    semester,
+    password: pass1,
+    done: false,
+    history: [],
+    alerts: [],
+    advice: [],
+    profile: null,
+    initialAssessment: null,
+    initialAssessmentData: null
+  };
+
+  users[key] = state.user;
+  saveUsers(users);
+  saveCurrentKey(key);
+  toast("Cuenta creada correctamente.");
+  show("assessment");
+}
+function login(event){
+  event.preventDefault();
+  $("loginError").textContent = "";
+
+  const id = cleanText($("loginId").value).toLowerCase();
+  const pass = $("loginPass").value;
+  if(!id || !pass){
+    $("loginError").textContent = "Ingresa usuario o correo y contraseña.";
+    return;
+  }
+
+  const users = loadUsers();
+  const key = Object.keys(users).find(k => k === id || String(users[k].email || "").toLowerCase() === id);
+  if(!key){
+    $("loginError").textContent = "No encontramos ese usuario.";
+    return;
+  }
+  if(users[key].password !== pass){
+    $("loginError").textContent = "La contraseña no es correcta.";
+    return;
+  }
+
+  state.userKey = key;
+  state.user = users[key];
+  saveCurrentKey(key);
+  toast("Sesión iniciada correctamente.");
+  show(state.user.done ? "app" : "assessment");
+}
+function logout(){
+  state.user = null;
+  state.userKey = null;
+  state.activeView = "panel";
+  state.step = 0;
+  state.daily = seedDaily();
+  clearCurrentKey();
+  $("loginPass").value = "";
+  show("auth");
+}
+
+function renderAssessment(){
+  const step = INITIAL_STEPS[state.step];
+  $("stepLabel").textContent = `Paso ${state.step + 1} de ${INITIAL_STEPS.length}`;
+  $("stepBar").style.width = `${((state.step + 1) / INITIAL_STEPS.length) * 100}%`;
+  $("backStep").style.visibility = state.step === 0 ? "hidden" : "visible";
+  $("nextStep").textContent = state.step === INITIAL_STEPS.length - 1 ? "Generar perfil" : "Siguiente";
+
+  $("stepContent").innerHTML = `
+    <h2 class="title" style="margin-top:22px">${escapeHtml(step.title)}</h2>
+    <p class="sub">${escapeHtml(step.desc)}</p>
+    <div class="qgrid">
+      ${step.questions.map(q => renderQuestion(q, "assessment")).join("")}
+    </div>
+  `;
+}
+function scaleLabels(key){
+  if(key === "sleepHours") return ["<5 h", "5–6 h", "6–7 h", "7–8 h", ">8 h"];
+  return ["Muy bajo", "Bajo", "Medio", "Alto", "Muy alto"];
+}
+function renderScaleQuestion(q, scope, value){
+  const current = toScale5(value, q.key);
+  const labels = scaleLabels(q.key);
+  return `
+    <div class="scale-grid" role="radiogroup" aria-label="${escapeHtml(q.label)}">
+      ${[1,2,3,4,5].map(n => `
+        <button type="button" class="scale-option ${Number(current) === n ? "on" : ""}" onclick="setValue('${scope}','${q.key}',${n})" aria-pressed="${Number(current) === n}">
+          <b>${n}</b><small>${escapeHtml(labels[n-1])}</small>
+        </button>
+      `).join("")}
+    </div>
+    <div class="responsive-note">Escala 1 a 5 · selección única.</div>
+  `;
+}
+function renderQuestion(q, scope){
+  const value = scope === "assessment" ? state.assessment[q.key] : state.daily[q.key];
+  if(q.type === "range" || q.type === "scale"){
+    return `
+      <div class="q ${q.full ? "full" : ""}">
+        <h3>${escapeHtml(q.label)}</h3>
+        ${renderScaleQuestion(q, scope, value)}
+        ${q.key === "sleepHours" ? `<div class="sleep-note">${sleepCopy(sleepHoursFromScale(value))}</div>` : ""}
+      </div>
+    `;
+  }
+  if(q.type === "select"){
+    return `
+      <div class="q ${q.full ? "full" : ""}">
+        <h3>${escapeHtml(q.label)}</h3>
+        <div class="choice-grid">
+          ${q.options.map(([label,val]) => `<button type="button" class="chip-btn ${String(val) === String(value) ? "on" : ""}" onclick="setValue('${scope}','${q.key}','${jsAttr(val)}')" aria-pressed="${String(val) === String(value)}">${escapeHtml(label)}</button>`).join("")}
+        </div>
+      </div>
+    `;
+  }
+  if(q.type === "chips"){
+    return `
+      <div class="q full">
+        <h3>${escapeHtml(q.label)}</h3>
+        <div class="choice-grid">
+          ${q.options.map(opt => `<button type="button" class="chip-btn ${String(value) === String(opt) ? "on" : ""}" onclick="setValue('${scope}','${q.key}','${jsAttr(opt)}')" aria-pressed="${String(value) === String(opt)}">${escapeHtml(opt)}</button>`).join("")}
+        </div>
+      </div>
+    `;
+  }
+  if(q.type === "textarea"){
+    return `
+      <div class="q full">
+        <h3>${escapeHtml(q.label)}</h3>
+        <textarea oninput="setValue('${scope}','${q.key}',this.value)">${escapeHtml(value || "")}</textarea>
+      </div>
+    `;
+  }
+  return "";
+}
+function writeScopedValue(scope, key, value){
+  const target = scope === "assessment" ? state.assessment : state.daily;
+  if(["stress","exhaustion","motivation","calm","sleepHours","sleepQuality","restTime","timeEnough","organizationDifficulty","concentration","performance","support","balance","extremeFatigue"].includes(key)){
+    target[key] = toScale5(value, key);
+  }else{
+    target[key] = value;
+  }
+}
+function setValue(scope, key, value){
+  writeScopedValue(scope, key, value);
+  if(scope === "assessment") renderAssessment();
+  else if(key !== "observation") renderApp();
+}
+
+
+function previousStep(){
+  if(state.step > 0){
+    state.step--;
+    renderAssessment();
+  }
+}
+function nextStep(){
+  if(state.step < INITIAL_STEPS.length - 1){
+    state.step++;
+    renderAssessment();
+    return;
+  }
+
+  const profile = calculateProfile(state.assessment);
+  const record = buildRecord("Evaluación inicial", profile, state.assessment);
+  state.user.initialAssessment = profile;
+  state.user.initialAssessmentData = {...state.assessment};
+  state.user.profile = profile;
+  state.user.history = [record];
+  state.user.alerts = generateAlerts(profile, state.assessment, []);
+  state.user.done = true;
+  persistUser();
+  toast("Perfil de bienestar generado correctamente.");
+  show("app");
+}
+
+function toScale5(value, key = ""){
+  const n = Number(value);
+  if(Number.isNaN(n)) return 3;
+  if(n >= 1 && n <= 5) return Math.round(n);
+  if(key === "sleepHours"){
+    if(n < 5) return 1;
+    if(n < 6) return 2;
+    if(n < 7) return 3;
+    if(n <= 8) return 4;
+    return 5;
+  }
+  return clamp(Math.round(n / 20), 1, 5);
+}
+function scaleTo100(value){
+  return clamp(toScale5(value) * 20, 20, 100);
+}
+function sleepHoursFromScale(value){
+  return ({1:4, 2:5.5, 3:6.5, 4:7.5, 5:8.5})[toScale5(value, "sleepHours")] || 6.5;
+}
+function scaleText(value){
+  const labels = {1:"Muy bajo", 2:"Bajo", 3:"Medio", 4:"Alto", 5:"Muy alto"};
+  return `${toScale5(value)}/5 · ${labels[toScale5(value)]}`;
+}
+function metricScale(value){
+  return `${Math.max(1, Math.min(5, Math.round(Number(value || 0) / 20)))}/5`;
+}
+function scoreSelect(value, map, fallback = 50){
+  return map[value] ?? fallback;
+}
+function sleepCopy(hours){
+  const h = Number(hours);
+  if(h < 5) return "Descanso bajo";
+  if(h < 7) return "Descanso regular";
+  if(h <= 8) return "Buen descanso";
+  return "Descanso amplio";
+}
+function sleepScore(hours){
+  const h = Number(hours);
+  if(h < 4) return 20;
+  if(h < 5) return 35;
+  if(h < 6.5) return 55;
+  if(h <= 8) return 90;
+  if(h <= 9) return 82;
+  return 70;
+}
+function workloadScore(value){
+  return ({ "Baja":25, "Media":50, "Alta":75, "Muy alta":92 })[value] ?? 50;
+}
+function deliveriesScore(value){
+  return ({ "0 a 1":20, "2 a 3":48, "4 a 5":74, "Más de 5":92 })[value] ?? 48;
+}
+function accumulatedScore(value){
+  return ({ "No":18, "Una actividad":42, "Varias actividades":72, "Semana muy cargada":92 })[value] ?? 42;
+}
+function pressureScore(value){
+  return ({ "Nunca":12, "Algunos momentos":42, "Frecuentemente":74, "Casi todos los días":92 })[value] ?? 42;
+}
+function tiredScore(value){
+  return ({ "Nunca":10, "Algunas veces":40, "Frecuentemente":72, "Casi siempre":90 })[value] ?? 40;
+}
+function yesNoScore(value){
+  return ({ "No":15, "Parcialmente":55, "Sí":85, "A veces":45, "Frecuentemente":72, "Casi siempre":88, "Nada":10, "Poco":35, "Medianamente":55, "Bastante":78, "Moderado":60, "Alto":85, "Nunca":10 })[value] ?? 50;
+}
+function calculateProfile(data){
+  const stress = average([scaleTo100(data.stress), pressureScore(data.pressure)]);
+  const exhaustion = average([scaleTo100(data.exhaustion), yesNoScore(data.wokeTired), data.extremeFatigue ? scaleTo100(data.extremeFatigue) : NaN]);
+  const motivation = average([scaleTo100(data.motivation), 100 - yesNoScore(data.disinterest)]);
+  const sleepHours = sleepHoursFromScale(data.sleepHours || 3);
+  const sleepQuality = average([scaleTo100(data.sleepQuality), yesNoScore(data.restSufficient), 100 - yesNoScore(data.wokeTired)]);
+  const sleep = average([sleepScore(sleepHours), sleepQuality, scaleTo100(data.restTime || 3)]);
+  const workload = average([
+    workloadScore(data.workload),
+    deliveriesScore(data.deliveries),
+    accumulatedScore(data.accumulated),
+    100 - scaleTo100(data.timeEnough || 3),
+    scaleTo100(data.organizationDifficulty || 3)
+  ]);
+  const concentration = average([scaleTo100(data.concentration), 100 - yesNoScore(data.taskDifficulty), 100 - yesNoScore(data.participation)]);
+  const performance = scaleTo100(data.performance || 3);
+  const support = average([scaleTo100(data.support), yesNoScore(data.accompanied), 100 - yesNoScore(data.needHelp)]);
+  const balance = scaleTo100(data.balance || 3);
+  const energy = average([100 - exhaustion, sleep, motivation]);
+
+  const riskScore = clamp(
+    stress * .15 +
+    exhaustion * .16 +
+    (100 - sleep) * .16 +
+    (100 - sleepQuality) * .08 +
+    (100 - motivation) * .12 +
+    workload * .14 +
+    (100 - concentration) * .10 +
+    (100 - performance) * .06 +
+    (100 - support) * .05 +
+    (100 - balance) * .08
+  );
+
+  const well = clamp(100 - riskScore);
+  const risk = riskScore < 38 ? "Bajo" : riskScore < 68 ? "Moderado" : "Alto";
+  const critic = [
+    ["Estrés", stress],
+    ["Agotamiento emocional", exhaustion],
+    ["Sueño", 100 - sleep],
+    ["Carga académica", workload],
+    ["Motivación", 100 - motivation],
+    ["Concentración", 100 - concentration],
+    ["Apoyo social", 100 - support],
+    ["Balance personal-académico", 100 - balance]
+  ].sort((a,b) => b[1] - a[1])[0];
+
+  return {
+    stress: round(stress),
+    exhaustion: round(exhaustion),
+    motivation: round(motivation),
+    sleep: round(sleep),
+    sleepHours: Number(sleepHours.toFixed(1)),
+    sleepQuality: round(sleepQuality),
+    workload: round(workload),
+    workloadLabel: data.workload || "Media",
+    concentration: round(concentration),
+    performance: round(performance),
+    support: round(support),
+    balance: round(balance),
+    energy: round(energy),
+    riskScore: round(riskScore),
+    wellbeing: round(well),
+    risk,
+    state: risk === "Bajo" ? "Estado estable" : risk === "Moderado" ? "Indicadores en observación" : "Requiere atención preventiva",
+    criticalLabel: critic[0],
+    criticalScore: round(critic[1])
+  };
+}
+
+
+function buildRecord(kind, profile, source){
+  return {
+    id: "r" + Date.now() + Math.random().toString(16).slice(2),
+    kind,
+    date: nowIso(),
+    risk: profile.risk,
+    riskScore: profile.riskScore,
+    wellbeing: profile.wellbeing,
+    stress: profile.stress,
+    exhaustion: profile.exhaustion,
+    motivation: profile.motivation,
+    sleep: profile.sleep,
+    sleepHours: Number(profile.sleepHours),
+    workload: profile.workload,
+    workloadLabel: source.workload || profile.workloadLabel,
+    concentration: profile.concentration,
+    performance: profile.performance,
+    support: profile.support,
+    balance: profile.balance,
+    mood: source.mood || "Inicial",
+    observation: source.observation || "",
+    comment: commentFromProfile(profile)
+  };
+}
+function commentFromProfile(profile){
+  if(profile.risk === "Alto") return "Se recomienda atención prioritaria y descanso estructurado.";
+  if(profile.risk === "Moderado") return "Conviene mantener seguimiento y ordenar la carga académica.";
+  return "El perfil se mantiene estable con señales positivas.";
+}
+function generateAlerts(profile, source, previous){
+  const rules = [
+    ["sleep", Number(source.sleepHours || profile.sleepHours) < 5, "Descanso bajo", "Alta", "El registro muestra menos de cinco horas de sueño.", "Prioriza una rutina de descanso y protege tus horas de sueño."],
+    ["stress", profile.stress > 75, "Estrés alto", "Alta", "El nivel de estrés está por encima del rango recomendado.", "Organiza pendientes visibles y realiza una pausa breve antes de continuar."],
+    ["exhaustion", profile.exhaustion > 75, "Agotamiento emocional", "Alta", "El agotamiento emocional aparece como indicador prioritario.", "Divide actividades grandes y evita acumular tareas sin pausas."],
+    ["motivation", profile.motivation < 40, "Motivación baja", "Media", "La motivación académica está en observación.", "Inicia con una meta pequeña y reconoce avances concretos."],
+    ["workload", source.workload === "Muy alta" || profile.workload > 76, "Sobrecarga académica", "Alta", "La carga académica indica acumulación de entregas.", "Ordena tareas por fecha y define prioridades del día."],
+    ["concentration", profile.concentration < 45, "Concentración baja", "Media", "La concentración se encuentra por debajo del rango esperado.", "Trabaja en sesiones cortas con una tarea principal."],
+    ["support", profile.support < 45, "Acompañamiento en observación", "Media", "La percepción de apoyo disponible es baja.", "Busca apoyo de una persona de confianza o bienestar institucional."],
+    ["balance", profile.balance < 45, "Equilibrio personal-académico", "Media", "El balance personal requiere seguimiento.", "Reserva un espacio breve de descanso real."]
+  ];
+  const today = todayKey();
+  const arr = Array.isArray(previous) ? [...previous] : [];
+  rules.forEach(([rule, condition, title, priority, description, recommendation]) => {
+    if(condition && !arr.find(x => x.rule === rule && String(x.date).slice(0,10) === today)){
+      arr.unshift({
+        id: "a" + Date.now() + Math.random().toString(16).slice(2),
+        rule,
+        title,
+        priority,
+        description,
+        recommendation,
+        date: nowIso(),
+        status: "Nueva"
+      });
+    }
+  });
+  return arr.slice(0, 18);
+}
+
+function isCalculatedProfile(data){
+  return !!(data && typeof data === "object" && "riskScore" in data && "wellbeing" in data && "risk" in data);
+}
+
+function ind(){
+  const current = state.user?.profile || state.user?.initialAssessment;
+  if(isCalculatedProfile(current)) return current;
+  return calculateProfile(current || state.user?.initialAssessmentData || state.assessment || seedAssessment());
+}
+
+function bar(value, positive = true){
+  const v = clamp(Number(value));
+  const cls = positive
+    ? (v >= 70 ? "ok" : v >= 40 ? "warn" : "bad")
+    : (v >= 70 ? "bad" : v >= 40 ? "warn" : "ok");
+  return `<div class="prog ${cls}"><i style="width:${v}%"></i></div>`;
+}
+function radial(value, size = 140){
+  const v = clamp(Number(value));
+  const r = 56;
+  const c = 2 * Math.PI * r;
+  const dash = (v / 100) * c;
+  const visible = Math.max(1, Math.min(5, Math.round(v / 20)));
+  return `
+    <svg width="${size}" height="${size}" viewBox="0 0 140 140" aria-hidden="true">
+      <circle cx="70" cy="70" r="${r}" fill="none" stroke="#e8eef5" stroke-width="14"></circle>
+      <circle cx="70" cy="70" r="${r}" fill="none" stroke="url(#g)" stroke-width="14"
+              stroke-linecap="round" transform="rotate(-90 70 70)" stroke-dasharray="${dash} ${c - dash}"></circle>
+      <defs><linearGradient id="g" x1="0%" x2="100%" y1="0%" y2="0%"><stop offset="0%" stop-color="#1d73a8"/><stop offset="100%" stop-color="#62b4de"/></linearGradient></defs>
+      <text x="70" y="67" text-anchor="middle" font-size="22" font-weight="900" fill="#102033">${visible}/5</text>
+      <text x="70" y="90" text-anchor="middle" font-size="11" fill="#5f6f82">bienestar</text>
+    </svg>
+  `;
+}
+function clsRisk(risk){ return risk === "Bajo" ? "ok" : risk === "Moderado" ? "warn" : "bad"; }
+function interp(profile){
+  if(profile.risk === "Alto") return "Los indicadores sugieren una carga elevada. Conviene intervenir con acciones de descanso, organización y apoyo.";
+  if(profile.risk === "Moderado") return "Hay señales que merecen observación. Mantén el seguimiento y ajusta rutinas antes de que escale la carga.";
+  return "El perfil refleja estabilidad general y buenas condiciones de seguimiento.";
+}
+function wellText(profile){
+  return `El índice combina estrés, agotamiento, sueño, motivación, carga académica, concentración, apoyo social y balance personal. Actualmente, el sistema clasifica tu estado como ${profile.state.toLowerCase()} y sugiere priorizar ${profile.criticalLabel.toLowerCase()}.`;
+}
+function recText(profile){
+  if(profile.risk === "Alto"){
+    return "Tu seguimiento indica una carga relevante. Prioriza sueño, reduce multitarea y busca apoyo oportunamente. Mantener la rutina de registro ayudará a detectar si el perfil mejora.";
+  }
+  if(profile.risk === "Moderado"){
+    return "Conviene sostener hábitos de descanso, ordenar entregas y conservar espacios breves de pausa. Un seguimiento constante permitirá evitar acumulación de tensión.";
+  }
+  return "El estado actual es favorable. Mantén tus hábitos, registra cambios con regularidad y evita descuidar el descanso durante semanas de mayor exigencia.";
+}
+function advicePool(){
+  return [
+    { title: "Divide la jornada en bloques cortos", reason: "Trabajar con bloques breves mejora la concentración y reduce la sensación de saturación.", steps:["Define una tarea principal.","Usa bloques de 25 a 40 minutos.","Descansa 5 minutos entre bloques."], alt:["Ordena prioridades por fecha","Evita estudiar con distracciones","Registra tu avance al cierre del día"] },
+    { title: "Protege el sueño", reason: "Dormir lo suficiente favorece la memoria, la regulación emocional y el rendimiento.", steps:["Define una hora fija para dormir.","Evita pantallas antes de acostarte.","Cuida la última hora del día."], alt:["Reduce cafeína en la noche","Prepara materiales con antelación","Mantén una rutina de descanso"] },
+    { title: "Aclara la carga académica", reason: "Visualizar entregas y parciales ayuda a bajar la presión acumulada.", steps:["Lista pendientes por curso.","Identifica entregas urgentes.","Resuelve primero lo crítico."], alt:["Usa una agenda o calendario","Separa lo importante de lo accesorio","Pide apoyo si hay sobrecarga"] },
+    { title: "Recupera equilibrio personal", reason: "Reservar tiempo real para descansar favorece la constancia y el bienestar.", steps:["Pausa una actividad no esencial.","Camina unos minutos.","Retoma cuando te sientas más estable."], alt:["Haz respiración lenta","Evita prolongar la jornada sin pausas","Reduce el exceso de tareas simultáneas"] }
+  ];
+}
+function newAdvice(){
+  const pool = advicePool();
+  return pool[Math.floor(Math.random() * pool.length)];
+}
+function advice(){
+  if(!state.advice) state.advice = newAdvice();
+  return state.advice;
+}
+
+function renderAppLegacy(){
+  if(!state.user) return;
+  const profile = ind();
+  $("nav").innerHTML = NAV_ITEMS.map(([id,label,ico]) => `
+    <button type="button" class="${state.activeView === id ? "on" : ""}" onclick="go('${id}')">
+      <span class="nav-ico">${ico}</span>${label}
+    </button>
+  `).join("");
+  $("avatar").textContent = initial();
+  $("userName").textContent = state.user.username;
+  $("userMeta").textContent = `${state.user.program} · ${state.user.semester}`;
+  const meta = {
+    panel:"Resumen principal y alertas",
+    presentacion:"Descripción general y beneficios",
+    perfil:"Datos personales y estado",
+    bienestar:"Interpretación integral",
+    encuesta:"Registro diario",
+    indicadores:"Lectura detallada",
+    alertas:"Señales preventivas",
+    consejos:"Recomendaciones accionables",
+    reportes:"Análisis por periodo",
+    seguimiento:"Bitácora histórica",
+    acerca:"Propósito y alcance"
+  };
+  $("mainSub").textContent = meta[state.activeView] || "Resumen actualizado";
+  $("mainTitle").textContent = NAV_ITEMS.find(x => x[0] === state.activeView)?.[1] || "Panel general";
+  if(!views[state.activeView]) state.activeView = "panel";
+  $("view").innerHTML = views[state.activeView]();
+  $("side").classList.remove("open");
+}
+
+function go(view){
+  state.activeView = view;
+  renderApp();
+}
+
+function metricCard(title, value, positive, note){
+  const cls = positive ? "ok" : "bad";
+  return `
+    <section class="card s3 metric">
+      <div class="between">
+        <div>
+          <div class="small muted">${escapeHtml(title)}</div>
+          <div class="num">${escapeHtml(String(value))}${typeof value === "number" ? "" : ""}</div>
+        </div>
+      </div>
+      ${bar(value, positive)}
+      <div class="small muted">${escapeHtml(note)}</div>
+    </section>
+  `;
+}
+function stat(label, value){
+  return `<div class="stat"><span>${escapeHtml(label)}</span><b>${escapeHtml(String(value ?? ""))}</b></div>`;
+}
+function ins(title, value, text){
+  return `
+    <div class="ins">
+      <div class="badge">✦</div>
+      <div>
+        <h4>${escapeHtml(title)}</h4>
+        <p>${escapeHtml(text)}</p>
+      </div>
+      <span class="chip info">${escapeHtml(String(value))}</span>
+    </div>
+  `;
+}
+function alertCard(alert){
+  return `
+    <div class="item">
+      <div class="mark2">!</div>
+      <div>
+        <div class="between" style="gap:10px">
+          <b>${escapeHtml(alert.title)}</b>
+          <span class="chip ${alert.priority === "Alta" ? "bad" : "warn"}">${escapeHtml(alert.priority)}</span>
+        </div>
+        <p class="muted small" style="margin:6px 0 0">${escapeHtml(alert.description)}</p>
+        <p class="small" style="margin:6px 0 0"><b>Recomendación:</b> ${escapeHtml(alert.recommendation)}</p>
+        <div class="small muted" style="margin-top:8px">${fmtDate(alert.date)}</div>
+      </div>
+    </div>
+  `;
+}
+function empty(title, text){
+  return `<div class="ins"><div class="badge">i</div><div><h4>${escapeHtml(title)}</h4><p>${escapeHtml(text)}</p></div></div>`;
+}
+
+function svgLineChart(records, key){
+  const values = records.map(r => Number(r[key] ?? 0));
+  if(!values.length) return empty("Sin datos", "Aún no hay registros suficientes para graficar.");
+  const w = 900, h = 220, pad = 20;
+  const min = Math.min(...values), max = Math.max(...values);
+  const range = Math.max(1, max - min);
+  const points = values.map((v, i) => {
+    const x = pad + (i * (w - pad*2) / Math.max(1, values.length - 1));
+    const y = h - pad - ((v - min) / range) * (h - pad*2);
+    return `${x},${y}`;
+  }).join(" ");
+  return `
+    <svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" role="img" aria-label="Gráfica de línea">
+      <defs>
+        <linearGradient id="fillLine" x1="0" x2="0" y1="0" y2="1">
+          <stop offset="0%" stop-color="rgba(29,115,168,.22)"></stop>
+          <stop offset="100%" stop-color="rgba(29,115,168,0)"></stop>
+        </linearGradient>
+      </defs>
+      <rect x="0" y="0" width="${w}" height="${h}" fill="#fff"></rect>
+      <line x1="${pad}" y1="${h-pad}" x2="${w-pad}" y2="${h-pad}" stroke="#e8eef5" />
+      <polyline points="${points}" fill="none" stroke="#1d73a8" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round"></polyline>
+      ${values.map((v, i) => {
+        const x = pad + (i * (w - pad*2) / Math.max(1, values.length - 1));
+        const y = h - pad - ((v - min) / range) * (h - pad*2);
+        return `<circle cx="${x}" cy="${y}" r="4.5" fill="#1d73a8"></circle>`;
+      }).join("")}
+    </svg>
+  `;
+}
+function svgBars(records, key){
+  const values = records.map(r => Number(r[key] ?? 0)).slice(-10);
+  if(!values.length) return empty("Sin datos", "Aún no hay registros suficientes para graficar.");
+  const max = Math.max(...values, 100);
+  const h = 220, w = 900, pad = 20, gap = 8;
+  const barW = (w - pad*2 - gap*(values.length - 1)) / values.length;
+  return `
+    <svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" aria-label="Gráfica de barras">
+      <rect x="0" y="0" width="${w}" height="${h}" fill="#fff"></rect>
+      ${values.map((v,i) => {
+        const bh = ((v / max) * (h - pad*2));
+        const x = pad + i*(barW + gap);
+        const y = h - pad - bh;
+        return `<rect x="${x}" y="${y}" width="${barW}" height="${bh}" rx="8" fill="#1d73a8"></rect>
+                <text x="${x + barW/2}" y="${h-8}" text-anchor="middle" font-size="11" fill="#5f6f82">${v}</text>`;
+      }).join("")}
+    </svg>
+  `;
+}
+function svgHorizontal(profile){
+  const items = [
+    ["Estrés", profile.stress, false],
+    ["Agotamiento", profile.exhaustion, false],
+    ["Sueño", profile.sleep, true],
+    ["Motivación", profile.motivation, true],
+    ["Carga", profile.workload, false],
+    ["Concentración", profile.concentration, true]
+  ];
+  return `
+    <div style="display:grid;gap:12px">
+      ${items.map(([label,val,positive]) => `
+        <div>
+          <div class="between"><span>${escapeHtml(label)}</span><b>${round(val)}</b></div>
+          ${bar(val,positive)}
+        </div>
+      `).join("")}
+    </div>
+  `;
+}
+
+function renderPanel(){
+  const profile = ind();
+  const latest = state.user.history?.[0];
+  const activeAlert = (state.user.alerts || []).find(a => a.status !== "Revisada");
+  const tip = advice();
+
+  return `
+    <div class="grid">
+      <section class="card s8 hero-card">
+        <div class="between">
+          <div>
+            <span class="chip ${clsRisk(profile.risk)}">Riesgo ${profile.risk.toLowerCase()}</span>
+            <h2 class="title" style="margin-top:12px">Hola, ${escapeHtml(state.user.username)}</h2>
+            <p class="sub">${escapeHtml(interp(profile))} Última actualización: <b>${fmtDate(latest?.date)}</b>.</p>
+          </div>
+          ${radial(profile.wellbeing, 150)}
+        </div>
+        <div class="row" style="margin-top:18px">
+          <button class="btn" type="button" onclick="go('encuesta')">Registrar encuesta diaria</button>
+          <button class="btn alt" type="button" onclick="go('consejos')">Ver consejos</button>
+        </div>
+      </section>
+
+      <section class="card s4 metric">
+        <div>
+          <div class="small muted">Estado general</div>
+          <div class="num">${metricScale(profile.wellbeing)}</div>
+        </div>
+        ${bar(profile.wellbeing,true)}
+        <div class="small muted">Próxima encuesta sugerida: al cierre de tu jornada académica.</div>
+      </section>
+
+      <section class="card s3 metric"><div><div class="small muted">Estrés</div><div class="num">${metricScale(profile.stress)}</div></div>${bar(profile.stress,false)}<div class="small muted">Presión percibida</div></section>
+      <section class="card s3 metric"><div><div class="small muted">Agotamiento</div><div class="num">${metricScale(profile.exhaustion)}</div></div>${bar(profile.exhaustion,false)}<div class="small muted">Desgaste emocional</div></section>
+      <section class="card s3 metric"><div><div class="small muted">Motivación</div><div class="num">${metricScale(profile.motivation)}</div></div>${bar(profile.motivation,true)}<div class="small muted">Impulso académico</div></section>
+      <section class="card s3 metric"><div><div class="small muted">Sueño</div><div class="num">${metricScale(profile.sleep)}</div></div>${bar(profile.sleep,true)}<div class="small muted">Descanso y recuperación</div></section>
+
+      <section class="card s7">
+        <h3 class="title" style="font-size:1.1rem">Evolución del estrés</h3>
+        <div class="chart" style="margin-top:14px">${svgLineChart(state.user.history || [], "stress")}</div>
+      </section>
+
+      <section class="card s5">
+        <h3 class="title" style="font-size:1.1rem">Horas de sueño</h3>
+        <div class="chart" style="margin-top:14px">${svgBars(state.user.history || [], "sleepHours")}</div>
+      </section>
+
+      <section class="card s6">
+        <h3 class="title" style="font-size:1.1rem">Alerta destacada</h3>
+        <div class="line" style="margin-top:14px">
+          ${activeAlert ? alertCard(activeAlert) : empty("No hay alertas pendientes", "Tus indicadores se mantienen dentro de un rango estable.")}
+        </div>
+      </section>
+
+      <section class="card s6">
+        <h3 class="title" style="font-size:1.1rem">Consejo principal</h3>
+        <div class="ins" style="margin-top:14px">
+          <div class="badge">✧</div>
+          <div>
+            <h4>${escapeHtml(tip.title)}</h4>
+            <p>${escapeHtml(tip.reason)}</p>
+          </div>
+          <span class="chip info">${escapeHtml(profile.criticalLabel)}</span>
+        </div>
+      </section>
+    </div>
+  `;
+}
+
+function renderPresentation(){
+  const profile = ind();
+  return `
+    <div class="showcase">
+      <section class="showcase-head">
+        <span class="chip info">BurnoutTracker · bienestar académico</span>
+        <h2>Monitorea tu bienestar con una interfaz sobria, universitaria y clara.</h2>
+        <p>BurnoutTracker registra tu estado diario, analiza señales como estrés, sueño, motivación y carga académica, y presenta información útil para tomar decisiones con más criterio durante el semestre.</p>
+        <div class="row" style="margin-top:18px">
+          <button class="btn" type="button" onclick="go('encuesta')">Registrar mi estado</button>
+          <button class="btn alt" type="button" onclick="go('reportes')">Ver reportes</button>
+        </div>
+      </section>
+      <section class="feature-grid">
+        <article class="feature">
+          <div class="ico">01</div>
+          <h3>Evalúa</h3>
+          <p>Construye tu perfil inicial de bienestar académico con criterios comprensibles.</p>
+          <a href="javascript:void(0)" onclick="go('bienestar')">Ver bienestar →</a>
+        </article>
+        <article class="feature">
+          <div class="ico">02</div>
+          <h3>Registra</h3>
+          <p>Actualiza tu estado diario con controles mixtos: barras, selecciones y opciones rápidas.</p>
+          <a href="javascript:void(0)" onclick="go('encuesta')">Registrar →</a>
+        </article>
+        <article class="feature">
+          <div class="ico">03</div>
+          <h3>Analiza</h3>
+          <p>Visualiza cambios en estrés, sueño, motivación, apoyo y carga académica.</p>
+          <a href="javascript:void(0)" onclick="go('indicadores')">Indicadores →</a>
+        </article>
+      </section>
+      <section class="benefits">
+        <div class="benefit-panel">
+          <span class="chip" style="background:rgba(255,255,255,.08);color:#fff;border-color:rgba(255,255,255,.12)">Beneficios</span>
+          <h3 style="margin:14px 0 10px;font-size:clamp(1.5rem,3vw,2.3rem);line-height:1.05">Seguimiento claro y preventivo</h3>
+          <p>Ayuda a reconocer sobrecarga, descanso insuficiente o desmotivación antes de que afecten el rendimiento académico.</p>
+          <div class="row" style="margin-top:18px">
+            <span class="chip" style="background:rgba(255,255,255,.08);color:#fff;border-color:rgba(255,255,255,.12)">Índice actual: ${metricScale(profile.wellbeing)}</span>
+            <span class="chip" style="background:rgba(255,255,255,.08);color:#fff;border-color:rgba(255,255,255,.12)">Riesgo ${profile.risk.toLowerCase()}</span>
+          </div>
+        </div>
+        <div class="benefit-list">
+          ${ins("Organización", profile.workload, "Prioriza tareas y entregas según tu carga real.")}
+          ${ins("Descanso", profile.sleep, "Visualiza si tu sueño favorece tu rendimiento.")}
+          ${ins("Alertas tempranas", profile.riskScore, "Detecta señales de atención sin alarmismo.")}
+          ${ins("Reportes", profile.wellbeing, "Observa tu evolución con gráficos claros.")}
+        </div>
+      </section>
+      <div class="footer-panel">
+        <h3 style="margin:0 0 6px">Herramienta de apoyo académico</h3>
+        <p class="muted" style="margin:0">BurnoutTracker no reemplaza acompañamiento profesional; sirve como apoyo para identificar cambios y decidir cuándo conviene buscar ayuda.</p>
+        <div class="row" style="justify-content:center;margin-top:16px">
+          <button class="btn" type="button" onclick="go('panel')">Ir al panel general</button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function renderProfile(){
+  const profile = ind();
+  const user = state.user;
+  return `
+    <div class="grid">
+      <section class="card s12 hero-card">
+        <div class="between">
+          <div class="row">
+            <div class="avatar" style="width:86px;height:86px;border-radius:28px;font-size:2rem">${escapeHtml(initial())}</div>
+            <div>
+              <span class="chip ${clsRisk(profile.risk)}">Riesgo ${profile.risk.toLowerCase()}</span>
+              <h2 class="title" style="margin-top:10px">${escapeHtml(user.fullName)}</h2>
+              <p class="sub">@${escapeHtml(user.username)} · ${escapeHtml(user.program)} · ${escapeHtml(user.semester)}</p>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section class="card s8">
+        <h3 class="title" style="font-size:1.1rem">Información del estudiante</h3>
+        <div class="stats" style="margin-top:14px">
+          ${stat("Username", user.username)}
+          ${stat("Nombre completo", user.fullName)}
+          ${stat("Correo", user.email)}
+          ${stat("Programa", user.program)}
+          ${stat("Semestre", user.semester)}
+          ${stat("Estado", "Seguimiento activo")}
+          ${stat("Última encuesta", fmtDate((user.history || [])[0]?.date))}
+          ${stat("Total de encuestas", String((user.history || []).length))}
+        </div>
+      </section>
+      <section class="card s4">
+        <h3 class="title" style="font-size:1.1rem">Progreso</h3>
+        <div class="num" style="margin-top:12px">${metricScale(profile.wellbeing)}</div>
+        ${bar(profile.wellbeing,true)}
+        <p class="small muted">El perfil se actualiza con cada registro.</p>
+      </section>
+    </div>
+  `;
+}
+
+function renderWellbeing(){
+  const profile = ind();
+  return `
+    <div class="grid">
+      <section class="card s5">
+        <h3 class="title" style="font-size:1.1rem">Índice general de bienestar académico</h3>
+        <div class="between" style="margin-top:16px">
+          ${radial(profile.wellbeing, 190)}
+          <div>
+            <span class="chip ${clsRisk(profile.risk)}">${escapeHtml(profile.state)}</span>
+            <p class="muted" style="margin-top:10px">${escapeHtml(interp(profile))}</p>
+          </div>
+        </div>
+      </section>
+      <section class="card s7">
+        <h3 class="title" style="font-size:1.1rem">Interpretación del sistema</h3>
+        <p class="sub">${escapeHtml(wellText(profile))}</p>
+        <div class="line" style="margin-top:16px">
+          ${ins("Estado emocional", 100 - average([profile.stress, profile.exhaustion]), "Relación entre estrés y agotamiento.")}
+          ${ins("Nivel de energía", profile.energy, "Capacidad percibida para sostener actividades.")}
+          ${ins("Calidad del sueño", profile.sleep, "Influye en concentración y recuperación.")}
+        </div>
+      </section>
+      <section class="card s12">
+        <h3 class="title" style="font-size:1.1rem">Comparación de indicadores</h3>
+        <div class="chart" style="margin-top:14px">${svgHorizontal(profile)}</div>
+      </section>
+      <section class="card s3 metric"><div><div class="small muted">Motivación</div><div class="num">${metricScale(profile.motivation)}</div></div>${bar(profile.motivation,true)}<div class="small muted">Impulso para iniciar actividades</div></section>
+      <section class="card s3 metric"><div><div class="small muted">Balance</div><div class="num">${profile.balance}</div></div>${bar(profile.balance,true)}<div class="small muted">Equilibrio personal-académico</div></section>
+      <section class="card s3 metric"><div><div class="small muted">Apoyo social</div><div class="num">${profile.support}</div></div>${bar(profile.support,true)}<div class="small muted">Acompañamiento disponible</div></section>
+      <section class="card s3 metric"><div><div class="small muted">Concentración</div><div class="num">${profile.concentration}</div></div>${bar(profile.concentration,true)}<div class="small muted">Atención para estudiar</div></section>
+    </div>
+  `;
+}
+
+function renderSurvey(){
+  return `
+    <div class="grid">
+      <section class="card s12 hero-card">
+        <h2 class="title">Encuesta diaria de bienestar</h2>
+        <p class="sub">Dedica un minuto a registrar cómo te sientes hoy. Todas las preguntas se responden con selección múltiple. Las preguntas cuantitativas usan escala 1 a 5.</p>
+      </section>
+      <section class="card s12">
+        <div class="qgrid">
+          ${DAILY_QUESTIONS.map(q => renderQuestion(q, "daily")).join("")}
+        </div>
+        <div class="row" style="margin-top:16px">
+          <button class="btn" type="button" onclick="saveDaily()">Guardar registro del día</button>
+          <button class="btn alt" type="button" onclick="resetDaily()">Restablecer encuesta</button>
+        </div>
+      </section>
+    </div>
+  `;
+}
+
+function renderIndicators(){
+  const profile = ind();
+  const items = [
+    ["Estrés", profile.stress, false],
+    ["Agotamiento emocional", profile.exhaustion, false],
+    ["Motivación", profile.motivation, true],
+    ["Sueño", profile.sleep, true],
+    ["Calidad del sueño", profile.sleepQuality, true],
+    ["Carga académica", profile.workload, false],
+    ["Concentración", profile.concentration, true],
+    ["Rendimiento percibido", profile.performance, true],
+    ["Apoyo social", profile.support, true],
+    ["Balance personal-académico", profile.balance, true],
+    ["Bienestar general", profile.wellbeing, true]
+  ];
+  return `
+    <section class="card">
+      <div class="between">
+        <div>
+          <h2 class="title">Análisis de indicadores</h2>
+          <p class="sub">Valor, estado, tendencia, explicación y prioridad de atención.</p>
+        </div>
+        <span class="chip ${clsRisk(profile.risk)}">Riesgo ${profile.risk.toLowerCase()}</span>
+      </div>
+      <div class="line" style="margin-top:18px">
+        ${items.map(([label, value, positive]) => `
+          <div class="ins">
+            <div class="badge">•</div>
+            <div>
+              <h4>${escapeHtml(label)}</h4>
+              <p>${indicatorText(label, value, positive)}</p>
+            </div>
+            <span class="chip info">${escapeHtml(metricScale(value))}</span>
+          </div>
+        `).join("")}
+      </div>
+    </section>
+  `;
+}
+function indicatorText(label, value, positive){
+  const v = round(value);
+  if(label === "Sueño") return `Puntuación de sueño: ${metricScale(v)}. Un mejor descanso suele fortalecer el rendimiento académico.`;
+  if(label === "Carga académica") return `Carga percibida: ${metricScale(v)}. Este indicador ayuda a identificar semanas con acumulación de tareas.`;
+  if(label === "Riesgo de burnout") return `Clasificación preventiva basada en la relación entre carga, sueño, estrés y apoyo.`;
+  if(positive) return `Valor favorable: ${metricScale(v)}. Aporta estabilidad al seguimiento académico.`;
+  return `Valor observado: ${metricScale(v)}. Conviene observar si este indicador tiende a subir en los próximos registros.`;
+}
+
+function renderAlerts(){
+  const alerts = state.user.alerts || [];
+  const open = alerts.filter(a => a.status !== "Revisada").length;
+  return `
+    <div class="grid">
+      <section class="card s12 hero-card">
+        <div class="between">
+          <div>
+            <h2 class="title">Alertas tempranas</h2>
+            <p class="sub">Señales preventivas generadas a partir de tus registros.</p>
+          </div>
+          <span class="chip ${open ? "warn" : "ok"}">${open} pendientes</span>
+        </div>
+      </section>
+      <section class="card s12">
+        <div class="line">
+          ${alerts.length ? alerts.map(alertCard).join("") : empty("No hay alertas activas", "Tus registros actuales no generan señales prioritarias.")}
+        </div>
+      </section>
+    </div>
+  `;
+}
+
+function renderAdvice(){
+  const profile = ind();
+  const tip = advice();
+  return `
+    <div class="grid">
+      <section class="card s12" style="background:linear-gradient(135deg,var(--text),#274866);color:#fff">
+        <span class="chip" style="background:rgba(255,255,255,.08);color:#fff;border-color:rgba(255,255,255,.12)">Consejo principal del día</span>
+        <h2 class="title" style="margin-top:14px;color:#fff">${escapeHtml(tip.title)}</h2>
+        <p style="color:rgba(255,255,255,.84);max-width:900px">${escapeHtml(tip.reason)}</p>
+        <div class="grid" style="grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:16px">
+          ${tip.steps.map((s,i) => `<div class="card" style="background:rgba(255,255,255,.08);color:#fff;border-color:rgba(255,255,255,.12);box-shadow:none"><b>${i+1}</b><p style="margin:8px 0 0">${escapeHtml(s)}</p></div>`).join("")}
+        </div>
+        <div class="row" style="margin-top:18px">
+          <button class="btn alt" type="button" onclick="state.advice = newAdvice(); toast('Nuevo consejo generado.'); renderApp();">Generar nuevo consejo</button>
+          <button class="btn soft" type="button" onclick="applyAdvice()">Añadir al seguimiento</button>
+        </div>
+      </section>
+      <section class="card s6">
+        <h3 class="title" style="font-size:1.1rem">Motivo del consejo</h3>
+        <div style="margin-top:14px">${ins(profile.criticalLabel, profile.criticalScore, tip.reason)}</div>
+      </section>
+      <section class="card s6">
+        <h3 class="title" style="font-size:1.1rem">Consejos alternativos</h3>
+        <div class="line" style="margin-top:14px">
+          ${tip.alt.map(x => `<div class="ins"><div class="badge">✧</div><div><h4>${escapeHtml(x)}</h4><p>Acción breve para aplicar esta semana.</p></div></div>`).join("")}
+        </div>
+      </section>
+      <section class="card s12">
+        <h3 class="title" style="font-size:1.1rem">Historial breve de consejos aplicados</h3>
+        <div class="line" style="margin-top:14px">
+          ${(state.user.advice || []).length
+            ? state.user.advice.slice().reverse().slice(0,5).map(a => `<div class="item"><div class="mark2">✓</div><div><b>${escapeHtml(a.title)}</b><p class="muted small">${escapeHtml(a.date)}</p></div></div>`).join("")
+            : empty("Aún no has añadido consejos", "Puedes guardar una recomendación para verla en tu seguimiento.")}
+        </div>
+      </section>
+    </div>
+  `;
+}
+
+function renderReports(){
+  const profile = ind();
+  const history = state.user.history || [];
+  return `
+    <div class="grid">
+      <section class="card s12 hero-card">
+        <div class="between">
+          <div>
+            <h2 class="title">Reportes</h2>
+            <p class="sub">Análisis diario, semanal y mensual del seguimiento.</p>
+          </div>
+          <button class="btn" type="button" onclick="exportReport()">Exportar reporte</button>
+        </div>
+      </section>
+      <section class="card s12">
+        <div class="select-row">
+          ${["diario","semanal","mensual"].map(mode => `<button type="button" class="chip-btn ${state.reportMode === mode ? "on" : ""}" onclick="state.reportMode='${mode}'; renderApp();">Ver reporte ${escapeHtml(mode)}</button>`).join("")}
+        </div>
+        <div class="stats" style="margin-top:16px">
+          ${stat("Nombre completo", state.user.fullName)}
+          ${stat("Username", state.user.username)}
+          ${stat("Programa académico", state.user.program)}
+          ${stat("Semestre", state.user.semester)}
+          ${stat("Último registro", fmtDate(history[0]?.date))}
+          ${stat("Encuestas completadas", String(history.length))}
+          ${stat("Nivel de riesgo", profile.risk)}
+          ${stat("Índice general", metricScale(profile.wellbeing))}
+        </div>
+      </section>
+      <section class="card s6">
+        <h3 class="title" style="font-size:1.1rem">Resumen ${escapeHtml(state.reportMode)}</h3>
+        <p class="sub">Durante el periodo evaluado se observa una carga académica de ${metricScale(profile.workload)}, motivación de ${metricScale(profile.motivation)} y sueño de ${metricScale(profile.sleep)}. Se recomienda continuar con el registro diario para fortalecer la precisión del seguimiento.</p>
+        <div class="line" style="margin-top:16px">
+          ${ins("Promedio de estrés", avgMetric("stress"), "Valor promedio del periodo disponible.")}
+          ${ins("Promedio de agotamiento", avgMetric("exhaustion"), "Seguimiento del desgaste emocional.")}
+          ${ins("Promedio de sueño", avgSleep().toFixed(1) + " h", "Horas de sueño por registro.")}
+        </div>
+      </section>
+      <section class="card s6">
+        <h3 class="title" style="font-size:1.1rem">Comparación de indicadores</h3>
+        <div class="chart" style="margin-top:14px">${svgHorizontal(profile)}</div>
+      </section>
+      <section class="card s7">
+        <h3 class="title" style="font-size:1.1rem">Evolución del riesgo</h3>
+        <div class="chart" style="margin-top:14px">${svgLineChart(history, "riskScore")}</div>
+      </section>
+      <section class="card s5">
+        <h3 class="title" style="font-size:1.1rem">Estado del periodo</h3>
+        <div class="line" style="margin-top:14px">
+          ${ins("Carga predominante", predLoad(), "Tendencia principal del periodo disponible.")}
+          ${ins("Días con mayor estrés", dayMetric("stress","max"), "Máximo registrado.")}
+          ${ins("Días con mejor descanso", dayMetric("sleepHours","max"), "Mayor cantidad de sueño.")}
+          ${ins("Días con menor motivación", dayMetric("motivation","min"), "Menor motivación observada.")}
+        </div>
+      </section>
+      <section class="card s12">
+        <h3 class="title" style="font-size:1.1rem">Recomendación general</h3>
+        <p class="sub">${escapeHtml(recText(profile))}</p>
+      </section>
+    </div>
+  `;
+}
+
+function renderTracking(){
+  const history = (state.user.history || []).slice().reverse();
+  return `
+    <div class="grid">
+      <section class="card s12 hero-card">
+        <div class="between">
+          <div>
+            <h2 class="title">Seguimiento histórico</h2>
+            <p class="sub">Bitácora de registros, evolución del riesgo y constancia.</p>
+          </div>
+          <div class="row">
+            <button class="btn alt" type="button" onclick="go('encuesta')">Registrar nueva encuesta</button>
+            <button class="btn bad" type="button" onclick="resetTrack()">Reiniciar seguimiento</button>
+          </div>
+        </div>
+      </section>
+      <section class="card s4">
+        <h3 class="title" style="font-size:1.1rem">Días consecutivos</h3>
+        <div class="num" style="margin-top:10px">${consec()}</div>
+        <p class="muted small">Has completado ${weekCount()} registros esta semana.</p>
+      </section>
+      <section class="card s4">
+        <h3 class="title" style="font-size:1.1rem">Promedio semanal de estrés</h3>
+        <div class="num" style="margin-top:10px">${avgMetric("stress")}</div>
+        ${bar(avgMetric("stress"), false)}
+      </section>
+      <section class="card s4">
+        <h3 class="title" style="font-size:1.1rem">Promedio semanal de sueño</h3>
+        <div class="num" style="margin-top:10px">${avgSleep().toFixed(1)} <span class="small muted">h</span></div>
+        <p class="muted small">${sleepCopy(avgSleep())}</p>
+      </section>
+      <section class="card s6">
+        <h3 class="title" style="font-size:1.1rem">Mini calendario</h3>
+        ${calendar()}
+      </section>
+      <section class="card s6">
+        <h3 class="title" style="font-size:1.1rem">Comparación inicial vs actual</h3>
+        <div class="line" style="margin-top:14px">
+          ${compareMetric("Estrés","stress")}
+          ${compareMetric("Sueño","sleep")}
+          ${compareMetric("Motivación","motivation")}
+        </div>
+      </section>
+      <section class="card s12">
+        <div class="between">
+          <h3 class="title" style="font-size:1.1rem">Historial de registros</h3>
+          <button class="btn alt" type="button" onclick="document.getElementById('hist').innerHTML=(state.user.history || []).slice().reverse().map(recItem).join(''); toast('Historial completo desplegado.');">Ver historial completo</button>
+        </div>
+        <div id="hist" class="line" style="margin-top:14px">${history.slice(0,5).map(recItem).join("")}</div>
+      </section>
+    </div>
+  `;
+}
+
+function renderAbout(){
+  return `
+    <div class="grid">
+      <section class="card s12 hero-card">
+        <h2 class="title">Acerca de BurnoutTracker</h2>
+        <p class="sub">BurnoutTracker es una herramienta de monitoreo académico diseñada para apoyar el seguimiento del bienestar estudiantil mediante indicadores de estrés, agotamiento emocional, motivación, sueño y carga académica. Su objetivo es facilitar la detección temprana de señales asociadas al burnout académico y brindar información clara para la toma de decisiones.</p>
+      </section>
+      <section class="card s6">
+        <h3 class="title" style="font-size:1.1rem">Qué monitorea</h3>
+        <p class="muted">Estrés, agotamiento, motivación, concentración, sueño, carga académica, apoyo social, rendimiento percibido y balance personal-académico.</p>
+      </section>
+      <section class="card s6">
+        <h3 class="title" style="font-size:1.1rem">Cómo interpreta</h3>
+        <p class="muted">Combina los indicadores registrados para generar un índice general de bienestar y clasificar el nivel de riesgo en bajo, moderado o alto.</p>
+      </section>
+      <section class="card s12">
+        <div class="between">
+          <div>
+            <h3 class="title" style="font-size:1.1rem">Principios de diseño</h3>
+            <p class="sub">Interfaz académica, sobria, responsive y centrada en lectura clara.</p>
+          </div>
+        </div>
+      </section>
+    </div>
+  `;
+}
+
+function recItem(rec){
+  return `
+    <div class="item">
+      <div class="mark2">✓</div>
+      <div>
+        <div class="between">
+          <b>${escapeHtml(rec.kind)}</b>
+          <span class="chip ${rec.risk === "Alto" ? "bad" : rec.risk === "Moderado" ? "warn" : "ok"}">${escapeHtml(rec.risk)}</span>
+        </div>
+        <p class="muted small" style="margin:6px 0 0">${escapeHtml(fmtDate(rec.date))}</p>
+        <p class="small" style="margin:6px 0 0"><b>Observación:</b> ${escapeHtml(rec.comment)}</p>
+      </div>
+    </div>
+  `;
+}
+function compareMetric(label, key){
+  const history = state.user.history || [];
+  const first = history[history.length - 1];
+  const current = history[0];
+  const a = first ? Number(first[key] ?? 0) : 0;
+  const b = current ? Number(current[key] ?? 0) : 0;
+  const diff = round(b - a);
+  return ins(label, diff >= 0 ? `+${diff}` : diff, `Comparación entre el primer y el último registro guardado.`);
+}
+function calendar(){
+  const history = state.user.history || [];
+  const days = Array.from({length:14}, (_,i) => {
+    const rec = history[i];
+    if(!rec) return `<div class="day muted">—</div>`;
+    return `<div class="day"><div style="text-align:center"><b>${round(rec.wellbeing)}</b><div class="xsmall muted">${new Date(rec.date).toLocaleDateString("es-CO",{day:"2-digit",month:"short"})}</div></div></div>`;
+  }).join("");
+  return `<div class="cal">${days}</div>`;
+}
+
+function avgMetric(key){
+  const history = state.user.history || [];
+  return round(average(history.map(r => Number(r[key] ?? 0))));
+}
+function avgSleep(){
+  const history = state.user.history || [];
+  return average(history.map(r => Number(r.sleepHours ?? 0)));
+}
+function predLoad(){
+  const history = state.user.history || [];
+  if(!history.length) return "Sin datos";
+  const counts = history.reduce((acc, rec) => {
+    acc[rec.workloadLabel || rec.workload || "Media"] = (acc[rec.workloadLabel || rec.workload || "Media"] || 0) + 1;
+    return acc;
+  }, {});
+  return Object.entries(counts).sort((a,b) => b[1]-a[1])[0][0];
+}
+function dayMetric(key, mode){
+  const history = state.user.history || [];
+  if(!history.length) return "Sin datos";
+  const chosen = history.reduce((best, rec) => {
+    const value = Number(rec[key] ?? 0);
+    if(!best) return rec;
+    const bestVal = Number(best[key] ?? 0);
+    return mode === "max" ? (value > bestVal ? rec : best) : (value < bestVal ? rec : best);
+  }, null);
+  return chosen ? fmtDate(chosen.date).split(",")[0] : "Sin datos";
+}
+function consec(){
+  const history = state.user.history || [];
+  if(!history.length) return 0;
+  const dates = [...new Set(history.map(h => String(h.date).slice(0,10)))].sort().reverse();
+  let streak = 0;
+  let cursor = new Date();
+  for(;;){
+    const key = cursor.toISOString().slice(0,10);
+    if(dates.includes(key)) streak++;
+    else break;
+    cursor.setDate(cursor.getDate() - 1);
+  }
+  return streak || dates.length;
+}
+function weekCount(){
+  const history = state.user.history || [];
+  const now = new Date();
+  const weekAgo = new Date(now);
+  weekAgo.setDate(now.getDate() - 7);
+  return history.filter(r => new Date(r.date) >= weekAgo).length;
+}
+
+const views = {
+  panel: renderPanel,
+  presentacion: renderPresentation,
+  perfil: renderProfile,
+  bienestar: renderWellbeing,
+  encuesta: renderSurvey,
+  indicadores: renderIndicators,
+  alertas: renderAlerts,
+  consejos: renderAdvice,
+  reportes: renderReports,
+  seguimiento: renderTracking,
+  acerca: renderAbout
+};
+
+function saveDaily(){
+  const baseAssessment = state.user?.initialAssessmentData || state.assessment || seedAssessment();
+  const profile = calculateProfile({
+    ...baseAssessment,
+    ...state.daily,
+    sleepHours: state.daily.sleepHours
+  });
+  const record = buildRecord("Registro diario", profile, state.daily);
+  state.user.profile = profile;
+  state.user.history = [record, ...(state.user.history || [])];
+  state.user.alerts = generateAlerts(profile, state.daily, state.user.alerts || []);
+  persistUser();
+  toast("Registro del día guardado correctamente.");
+  renderApp();
+}
+function resetDaily(){
+  state.daily = seedDaily();
+  renderApp();
+}
+function applyAdvice(){
+  const tip = advice();
+  state.user.advice = state.user.advice || [];
+  state.user.advice.push({
+    title: tip.title,
+    date: fmtDate(nowIso())
+  });
+  persistUser();
+  toast("Consejo añadido al seguimiento.");
+  renderApp();
+}
+function exportReport(){
+  const profile = ind();
+  const text = [
+    "BurnoutTracker - Reporte",
+    `Usuario: ${state.user.fullName} (@${state.user.username})`,
+    `Programa: ${state.user.program} - ${state.user.semester}`,
+    `Índice general: ${metricScale(profile.wellbeing)}`,
+    `Riesgo: ${profile.risk}`,
+    `Estrés: ${profile.stress}`,
+    `Agotamiento: ${profile.exhaustion}`,
+    `Motivación: ${profile.motivation}`,
+    `Sueño: ${profile.sleep}`,
+    `Carga académica: ${profile.workload}`,
+    `Concentración: ${profile.concentration}`,
+    `Apoyo social: ${profile.support}`,
+    `Balance: ${profile.balance}`
+  ].join("\n");
+  const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "BurnoutTracker_Reporte.txt";
+  a.click();
+  URL.revokeObjectURL(url);
+  toast("Reporte exportado.");
+}
+function resetTrack(){
+  if(!confirm("¿Deseas reiniciar todo el seguimiento? Esta acción eliminará el historial guardado.")) return;
+  state.user.history = [];
+  state.user.alerts = [];
+  state.user.profile = null;
+  state.user.initialAssessment = null;
+  state.user.initialAssessmentData = null;
+  state.user.done = false;
+  state.step = 0;
+  state.assessment = seedAssessment();
+  state.daily = seedDaily();
+  persistUser();
+  toast("Seguimiento reiniciado.");
+  show("assessment");
+}
+
+function renderAppSafe(){
+  if(!state.user) return;
+  const profile = ind();
+  $("mainTitle").textContent = NAV_ITEMS.find(x => x[0] === state.activeView)?.[1] || "Panel general";
+  $("mainSub").textContent = {
+    panel:"Resumen principal y alertas",
+    presentacion:"Descripción general y beneficios",
+    perfil:"Datos personales y estado",
+    bienestar:"Interpretación integral",
+    encuesta:"Registro diario",
+    indicadores:"Lectura detallada",
+    alertas:"Señales preventivas",
+    consejos:"Recomendaciones accionables",
+    reportes:"Análisis por periodo",
+    seguimiento:"Bitácora histórica",
+    acerca:"Propósito y alcance"
+  }[state.activeView] || "Resumen actualizado";
+  $("avatar").textContent = initial();
+  $("userName").textContent = state.user.username;
+  $("userMeta").textContent = `${state.user.program} · ${state.user.semester}`;
+  $("nav").innerHTML = NAV_ITEMS.map(([id,label,ico]) => `
+    <button type="button" class="${state.activeView === id ? "on" : ""}" onclick="go('${id}')">
+      <span class="nav-ico">${ico}</span>${label}
+    </button>
+  `).join("");
+  if(!views[state.activeView]) state.activeView = "panel";
+  $("view").innerHTML = views[state.activeView]();
+  $("side").classList.remove("open");
+}
+const renderApp = renderAppSafe;
+
+window.setAuthTab = setAuthTab;
+window.previousStep = previousStep;
+window.nextStep = nextStep;
+window.go = go;
+window.setValue = setValue;
+// Compatibilidad: ya no usamos sliders, pero evitamos que una referencia antigua bloquee la app.
+function setRangeValue(scope, key, value){ setValue(scope, key, value); }
+window.setRangeValue = setRangeValue;
+window.saveDaily = saveDaily;
+window.resetDaily = resetDaily;
+window.applyAdvice = applyAdvice;
+window.exportReport = exportReport;
+window.resetTrack = resetTrack;
+window.logout = logout;
+
+authInit();
+</script>
+
+<script>
+function toggleDarkMode(){
+ document.body.classList.toggle('dark');
+ localStorage.setItem('bt_dark',document.body.classList.contains('dark'));
+}
+window.addEventListener('load',()=>{
+ if(localStorage.getItem('bt_dark')==='true'){
+   document.body.classList.add('dark');
+ }
+});
+
+function exportRealPDF(){
+ if(!window.jspdf) return alert('jsPDF no cargado');
+ const {jsPDF}=window.jspdf;
+ const pdf=new jsPDF();
+ pdf.text('Reporte BurnoutTracker',20,20);
+ pdf.text('Generado automáticamente',20,30);
+ pdf.save('Reporte_BurnoutTracker.pdf');
+}
+</script>
+
+</body>
+</html>
